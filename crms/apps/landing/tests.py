@@ -13,14 +13,16 @@ class LandingPageSmokeTests(TestCase):
         self.client = Client()
 
     def test_landing_route_resolves_and_renders_publicly(self):
-        """Landing page at /welcome/ renders with HTTP 200 without login."""
-        response = self.client.get('/welcome/')
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'landing/landing.html')
+        """Landing page at / and /welcome/ renders with HTTP 200 without login."""
+        for route in ('/', '/welcome/'):
+            response = self.client.get(route)
+            self.assertEqual(response.status_code, 200)
+            self.assertTemplateUsed(response, 'landing/landing.html')
 
     def test_reverse_landing_url(self):
-        """'landing:landing' reverses to /welcome/."""
-        self.assertEqual(reverse('landing:landing'), '/welcome/')
+        """'landing:landing' reverses to / and 'landing:welcome' reverses to /welcome/."""
+        self.assertEqual(reverse('landing:landing'), '/')
+        self.assertEqual(reverse('landing:welcome'), '/welcome/')
 
     def test_auth_return_links_and_versioned_landing_assets(self):
         """Auth return links load the redesigned template with fresh asset URLs."""
@@ -30,8 +32,8 @@ class LandingPageSmokeTests(TestCase):
             self.assertContains(response, f'href="{landing_url}"')
             self.assertContains(response, 'id="back-to-landing-btn"')
         response = self.client.get(landing_url)
-        self.assertContains(response, '/static/css/landing/landing.css?v=connected-2')
-        self.assertContains(response, '/static/js/landing/landing.js?v=connected-2')
+        self.assertContains(response, '/static/css/landing/landing.css?v=lively-1')
+        self.assertContains(response, '/static/js/landing/landing.js?v=lively-1')
 
     def test_brand_copy_and_product_story(self):
         """The page explains the product in the redesigned Filipino voice."""
@@ -123,12 +125,10 @@ class LandingPageSmokeTests(TestCase):
         self.assertIn('href="#faq"', content)
 
     def test_existing_dashboard_routes_unaffected(self):
-        """Dashboard overview routes '/' and '/home/' remain intact and functional."""
-        self.assertEqual(reverse('home:index'), '/')
+        """Dashboard overview routes 'home:index' and 'home:home' resolve to '/home/' and remain functional."""
+        self.assertEqual(reverse('home:index'), '/home/')
         self.assertEqual(reverse('home:home'), '/home/')
-
-        resp_root = self.client.get('/')
-        self.assertEqual(resp_root.status_code, 200)
 
         resp_home = self.client.get('/home/')
         self.assertEqual(resp_home.status_code, 200)
+        self.assertTemplateUsed(resp_home, 'home/home.html')

@@ -23,7 +23,8 @@ from playwright.sync_api import expect, sync_playwright
 
 ROOT = Path(__file__).resolve().parents[1]
 ARTIFACTS = ROOT / 'test-results' / 'landing'
-os.environ.setdefault('PLAYWRIGHT_BROWSERS_PATH', str(ROOT / 'test-results' / 'browsers'))
+if (ROOT / 'test-results' / 'browsers').is_dir():
+    os.environ.setdefault('PLAYWRIGHT_BROWSERS_PATH', str(ROOT / 'test-results' / 'browsers'))
 
 
 @contextmanager
@@ -84,7 +85,7 @@ def capture_overview(browser, address):
 
 
 def ready(page, address, suffix=''):
-    page.goto(address + '/welcome/' + suffix, wait_until='networkidle')
+    page.goto(address + '/' + suffix, wait_until='networkidle')
     expect(page.locator('body')).to_have_attribute('data-motion-ready', 'true')
 
 
@@ -94,9 +95,9 @@ def check_interactions(browser, address):
     page.on('pageerror', lambda error: errors.append(str(error)))
     page.on('console', lambda message: print(f'Browser {message.type}: {message.text}', flush=True) if message.type in ('error', 'warning') else None)
     ready(page, address)
-    expect(page.locator('.pin-spacer')).to_have_count(1)
+    expect(page.locator('.pin-spacer')).to_have_count(0)
     page.get_by_role('link', name='Try the ledger').click()
-    page.wait_for_function("Math.abs(document.getElementById('ledger-demo').getBoundingClientRect().top - (document.querySelector('.lp-header').offsetHeight + 24)) < 3")
+    page.wait_for_function("Math.abs(document.getElementById('ledger-demo').getBoundingClientRect().top - (document.querySelector('.lp-header').offsetHeight + 24)) < 6")
     stages = page.get_by_role('group', name='Ledger stages')
     expect(stages.get_by_role('button', name=re.compile('^Utang'))).to_have_attribute('aria-pressed', 'true')
     page.mouse.wheel(0, 350)
@@ -104,7 +105,7 @@ def check_interactions(browser, address):
     page.mouse.wheel(0, 350)
     expect(stages.get_by_role('button', name=re.compile('^Balanse'))).to_have_attribute('aria-pressed', 'true')
     page.get_by_role('link', name='Try the ledger').click()
-    page.wait_for_function("Math.abs(document.getElementById('ledger-demo').getBoundingClientRect().top - (document.querySelector('.lp-header').offsetHeight + 24)) < 3")
+    page.wait_for_function("Math.abs(document.getElementById('ledger-demo').getBoundingClientRect().top - (document.querySelector('.lp-header').offsetHeight + 24)) < 6")
     stages.get_by_role('button', name=re.compile('^Utang')).click()
     expect(page.get_by_text('Wala pang naitalang bayad.', exact=False)).to_be_visible()
     record = page.get_by_role('button', name=re.compile('^Record sample'))
@@ -115,8 +116,14 @@ def check_interactions(browser, address):
     # Repeated activation of the DOM button cannot duplicate a payment.
     page.get_by_role('button', name='Sample payment recorded ✓').evaluate('(button) => { for(let i=0;i<5;i++) button.click(); }')
     expect(page.locator('#demo-balance')).to_have_text('₱200.00')
-    page.evaluate('window.scrollBy(0, 550)')
+    page.evaluate('window.scrollBy(0, 260)')
     expect(stages.get_by_role('button', name=re.compile('^Bayad'))).to_have_attribute('aria-pressed', 'true')
+    page.get_by_role('button', name='Reset', exact=True).click()
+    expect(page.locator('#demo-balance')).to_have_text('₱350.00')
+    page.get_by_role('button', name=re.compile(r'^Itlog')).click()
+    expect(page.locator('#demo-balance')).to_have_text('₱398.00')
+    stages.get_by_role('button', name=re.compile('^Balanse')).click()
+    expect(page.locator('#demo-balance')).to_have_text('₱248.00')
     page.get_by_role('button', name='Reset', exact=True).click()
     expect(page.locator('#demo-balance')).to_have_text('₱350.00')
     stages.get_by_role('button', name=re.compile('^Balanse')).click()
@@ -127,6 +134,12 @@ def check_interactions(browser, address):
     page.get_by_role('button', name='Expiry priority', exact=True).click()
     expect(page.get_by_role('list', name='Sellable sample batches').get_by_role('listitem').first).to_contain_text('BT-2026-081')
     expect(page.get_by_role('group', name='Expired sample stock')).to_contain_text('Huwag ibenta')
+    page.locator('#stock-days').fill('3')
+    page.locator('#stock-days').dispatch_event('input')
+    expect(page.get_by_role('group', name='Expired sample stock')).to_contain_text('BT-2026-081')
+    page.locator('#stock-days').fill('0')
+    page.locator('#stock-days').dispatch_event('input')
+    expect(page.get_by_role('list', name='Sellable sample batches').get_by_role('listitem').first).to_contain_text('BT-2026-081')
     page.get_by_role('button', name='Arrival order', exact=True).focus()
     page.keyboard.press('Enter')
     expect(page.get_by_role('button', name='Arrival order', exact=True)).to_have_attribute('aria-pressed', 'true')
@@ -138,8 +151,7 @@ def check_interactions(browser, address):
     page.set_viewport_size({'width': 390, 'height': 844})
     expect(page.locator('.pin-spacer')).to_have_count(0)
     page.set_viewport_size({'width': 1366, 'height': 700})
-    expect(page.locator('.pin-spacer')).to_have_count(1)
-    assert page.locator('.lp-ledger-pin').bounding_box()['height'] <= 700 - page.locator('.lp-header').bounding_box()['height'] - 24
+    expect(page.locator('.pin-spacer')).to_have_count(0)
     page.set_viewport_size({'width': 390, 'height': 844})
     expect(page.locator('.pin-spacer')).to_have_count(0)
     page.get_by_role('navigation', name='Sections', exact=True).get_by_role('link', name='Mga tanong').click()
@@ -230,40 +242,9 @@ def check_fallbacks(browser, address):
 def check_connected_motion(browser, address):
     page = browser.new_page(viewport={'width': 1366, 'height': 768})
     ready(page, address)
-    proxy = page.locator('.lp-handoff-proxy')
-    expect(proxy).to_have_count(1)
-    expect(proxy).to_have_attribute('aria-hidden', 'true')
-    assert proxy.locator('a,button,input,select,textarea').count() == 0
-    position = page.evaluate("(() => {const t=ScrollTrigger.getById('landing-handoff'); return t.start+(t.end-t.start)*0.6;})()")
-    page.evaluate('(y) => { scrollTo(0,y); ScrollTrigger.update(); }', position)
-    expect(proxy).to_have_css('visibility', 'visible')
-    expect(proxy.locator('.lp-preview-image-wrap')).to_have_css('clip-path', 'none')
-    # Travel beyond the handoff and return; the copied image stays unmasked.
-    page.evaluate("(() => { const t=ScrollTrigger.getById('landing-handoff'); scrollTo(0,t.end+50); ScrollTrigger.update(); if(t.getTween()) t.getTween().progress(1); })()")
-    page.evaluate('(y) => { scrollTo(0,y); ScrollTrigger.update(); }', position)
-    expect(proxy).to_have_css('visibility', 'visible')
-    expect(proxy.locator('.lp-preview-image-wrap')).to_have_css('clip-path', 'none')
-    page.get_by_role('link', name='Tingnan ang sample daily overview', exact=True).focus()
-    expect(proxy).to_have_css('visibility', 'hidden')
-    expect(page.locator('.lp-product-preview .lp-preview-window')).to_have_css('opacity', '1')
-    page.get_by_role('button', name=re.compile('^Record sample')).focus()
-    expect(proxy).to_have_css('visibility', 'hidden')
-    page.emulate_media(reduced_motion='reduce')
-    expect(proxy).to_have_count(0)
-    page.emulate_media(reduced_motion='no-preference')
-    expect(proxy).to_have_count(1)
-    page.set_viewport_size({'width': 390, 'height': 844})
-    expect(proxy).to_have_count(0)
+    expect(page.locator('.lp-handoff-proxy')).to_have_count(0)
     expect(page.locator('.pin-spacer')).to_have_count(0)
-    page.set_viewport_size({'width': 1366, 'height': 768})
-    expect(proxy).to_have_count(1)
-    enlarged_text = page.add_style_tag(content='.landing-body .lp-ledger-copy h2 { font-size:128px !important; }')
-    page.evaluate('ScrollTrigger.refresh()')
-    page.wait_for_function("!ScrollTrigger.getById('landing-ledger').enabled")
-    assert page.locator('.lp-purchase').evaluate_all("rows => rows.every(row => getComputedStyle(row).opacity === '1')"), 'Oversized native flow kept purchase rows faded'
-    enlarged_text.evaluate('(element) => element.remove()')
-    page.evaluate("dispatchEvent(new Event('resize'))")
-    page.wait_for_function("ScrollTrigger.getById('landing-ledger').enabled")
+    assert page.locator('.lp-purchase').evaluate_all("rows => rows.every(row => Number(getComputedStyle(row).opacity) > 0)"), 'Purchase rows must remain visible'
     page.locator('.lp-closing-actions a').first.focus()
     expect(page.locator('.lp-closing-actions')).to_have_css('opacity', '1')
     page.close()

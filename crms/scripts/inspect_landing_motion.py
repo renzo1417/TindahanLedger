@@ -50,7 +50,7 @@ def main():
         print(json.dumps(page.evaluate('''() => ({height:document.documentElement.scrollHeight,
             motion:document.body.dataset.motion, proxies:document.querySelectorAll('.lp-handoff-proxy').length,
             triggers:ScrollTrigger.getAll().map(t=>({id:t.vars.id,start:t.start,end:t.end,enabled:t.enabled}))})''')), flush=True)
-        scenes = ['landing-ledger-entry'] if args.mobile else ['landing-handoff', 'landing-ledger']
+        scenes = ['landing-ledger-entry'] if args.mobile else ['landing-ledger']
         scenes += ['landing-stock-backdrop', 'landing-daily', 'landing-closing']
         for scene in scenes:
             if not page.evaluate('(id) => !!ScrollTrigger.getById(id)', scene):
@@ -58,6 +58,24 @@ def main():
             for fraction in [0, 0.25, 0.5, 0.75, 1]:
                 settle_scroll(page, scene, fraction)
                 page.screenshot(path=str(output / f'{prefix}-{scene}-{int(fraction*100):03}.png'))
+        if not args.mobile:
+            settle_scroll(page, 'landing-ledger', 1)
+            page.locator('[data-item="itlog"]').click()
+            page.locator('[data-item="kape"]').click()
+            page.locator('#ledger-demo .lp-ledger').scroll_into_view_if_needed()
+            page.evaluate("window.scrollBy(0, 60)")
+            page.wait_for_timeout(450)
+            page.screenshot(path=str(output / f'{prefix}-interactive-ledger.png'))
+            settle_scroll(page, 'landing-stock-backdrop', 0.65)
+            page.locator('#stock-days').fill('3')
+            page.locator('#stock-days').dispatch_event('input')
+            page.wait_for_timeout(500)
+            page.screenshot(path=str(output / f'{prefix}-interactive-stock.png'))
+            settle_scroll(page, 'landing-daily', 1)
+            page.locator('#daily-overview .lp-day-flow').scroll_into_view_if_needed()
+            page.locator('.lp-tape-row').first.focus()
+            page.wait_for_timeout(250)
+            page.screenshot(path=str(output / f'{prefix}-interactive-daily.png'))
         assert not errors, errors
         page.close()
         browser.close()

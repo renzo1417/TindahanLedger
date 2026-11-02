@@ -1,7 +1,7 @@
 """
 Landing page view for TindaHan Ledger.
 Vertical slice: apps.landing.views
-Serves the public landing page at /welcome/ with render-only sample data.
+Serves the public landing page at / (and /welcome/) with render-only sample data.
 Zero database mutations or external API dependencies.
 """
 

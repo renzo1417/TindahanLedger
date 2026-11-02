@@ -31,12 +31,16 @@ sys.path.insert(0, str(BASE_DIR / 'apps'))
 # See https://docs.djangoproject.com/en/6.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-_hv%-up462g2r(zcmg+xmt(^&%y_ooonoks5a&nsbp^y_9k4_='
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-_hv%-up462g2r(zcmg+xmt(^&%y_ooonoks5a&nsbp^y_9k4_=')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get('DEBUG', 'True').lower() in ('true', '1')
 
-ALLOWED_HOSTS = ['*']
+allowed_hosts_env = os.environ.get('ALLOWED_HOSTS')
+if allowed_hosts_env:
+    ALLOWED_HOSTS = [host.strip() for host in allowed_hosts_env.split(',') if host.strip()]
+else:
+    ALLOWED_HOSTS = ['*'] if DEBUG else ['localhost', '127.0.0.1']
 
 
 # Application definition
@@ -155,8 +159,30 @@ LOGIN_REDIRECT_URL = 'home:home'
 # Email
 # https://docs.djangoproject.com/en/6.1/topics/email/#topic-email-configuration
 
-MAILERS = {
-    'default': {
-        'BACKEND': 'django.core.mail.backends.console.EmailBackend',
-    },
-}
+email_backend = os.environ.get('EMAIL_BACKEND')
+if email_backend:
+    MAILERS = {
+        'default': {
+            'BACKEND': email_backend,
+        },
+    }
+else:
+    MAILERS = {
+        'default': {
+            'BACKEND': 'django.core.mail.backends.console.EmailBackend',
+        },
+    }
+
+
+# Production security hardening (inactive when DEBUG=True so local dev is unaffected)
+if not DEBUG:
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_BROWSER_XSS_FILTER = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    X_FRAME_OPTIONS = 'DENY'
+    SECURE_HSTS_SECONDS = int(os.environ.get('SECURE_HSTS_SECONDS', '31536000'))
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+    if os.environ.get('SECURE_SSL_REDIRECT', 'True').lower() in ('true', '1'):
+        SECURE_SSL_REDIRECT = True

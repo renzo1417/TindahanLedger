@@ -14,13 +14,20 @@
   const balance = root.querySelector('#demo-balance');
   const recordButton = root.querySelector('#record-payment');
   const stageButtons = [...root.querySelectorAll('[data-stage]')];
+  const itemButtons = [...root.querySelectorAll('[data-item]')];
+  const extraRows = root.querySelector('.lp-extra-rows');
   const batchList = root.querySelector('.lp-stock-list');
+  const expiredItems = root.querySelector('.lp-expired-items');
   const batches = [...batchList.querySelectorAll('[data-batch]')];
-  const state = { stage: 'utang', manual: false, order: 'expiry' };
+  const dayInput = root.querySelector('#stock-days');
+  const dayFlow = root.querySelector('.lp-day-flow');
+  const BASE_ITEMS = [250, 100];
+  const PAYMENT = 150;
+  const state = { stage: 'utang', manual: false, order: 'expiry', extras: [], offset: 0 };
   const stageData = {
-    utang: { paid: false, amount: '₱350.00', equation: '₱250.00 + ₱100.00 = ₱350.00', caption: 'Bawat utang, may sariling tala.' },
-    bayad: { paid: true, amount: '₱200.00', equation: '₱350.00 − ₱150.00 = ₱200.00', caption: 'Bayad na ₱150. Bawas agad sa balanse.' },
-    balance: { paid: true, amount: '₱200.00', equation: '₱350.00 − ₱150.00 = ₱200.00', caption: 'Bawat bayad, malinaw ang natitira.' }
+    utang: { paid: false, caption: 'Bawat utang, may sariling tala.' },
+    bayad: { paid: true, caption: 'Bayad na ₱150. Bawas agad sa balanse.' },
+    balance: { paid: true, caption: 'Bawat bayad, malinaw ang natitira.' }
   };
   let controller;
   let media;
@@ -33,65 +40,179 @@
   let introductionPlayed = false;
   let suspended = true;
   let pendingHashAlignment = false;
-  let paintLedgerMotion = null;
+
+  const peso = value => `₱${value.toFixed(2)}`;
+  const animating = () => gsapReady && !reduce.matches;
+
+  /* ---------- Ledger: one state owner, GSAP animates toward it ---------- */
+
+  function ledgerFigures(stage) {
+    const paid = stageData[stage].paid;
+    const items = [...BASE_ITEMS, ...state.extras.map(key => Number(itemButtons.find(b => b.dataset.item === key).dataset.amount))];
+    const total = items.reduce((sum, value) => sum + value, 0);
+    const owed = paid ? total - PAYMENT : total;
+    const equation = paid ? `${peso(total)} − ${peso(PAYMENT)} = ${peso(owed)}` : `${items.map(peso).join(' + ')} = ${peso(total)}`;
+    let caption = stageData[stage].caption;
+    if (state.extras.length) caption = paid ? 'Bawas ang bayad, kasama ang bagong pinamili.' : 'Bawat dagdag na pinamili, kita agad sa balanse.';
+    return { paid, owed, equation, caption };
+  }
 
   function clearLedgerMotion() {
     if (!gsapReady) return;
     window.gsap.killTweensOf([payment, receipt, balance]);
-    window.gsap.set([payment, receipt, balance], { clearProps: 'opacity,transform' });
+    window.gsap.set([payment, receipt, balance], { clearProps: 'opacity,transform,clipPath' });
+  }
+
+  function takeManualControl() {
+    state.manual = true;
+    if (!gsapReady) return;
+    const entry = window.ScrollTrigger?.getById('landing-ledger-entry')?.animation;
+    if (entry) entry.progress(1);
   }
 
   function renderLedger(stage, { manual = false, animate = false, announce = false } = {}) {
-    const previous = state.stage;
+    const wasPaid = stageData[state.stage].paid;
+    const previousAmount = balance.textContent;
     clearLedgerMotion();
     state.stage = stage;
-    if (manual) {
-      state.manual = true;
-      if (gsapReady) {
-        window.gsap.killTweensOf([ledger, ...root.querySelectorAll('.lp-purchase')]);
-        window.gsap.set([ledger, ...root.querySelectorAll('.lp-purchase')], { clearProps: 'clipPath,opacity,transform' });
-      }
-    }
-    const data = stageData[stage];
+    if (manual) takeManualControl();
+    const figures = ledgerFigures(stage);
     ledger.dataset.ledgerStage = stage;
-    payment.setAttribute('aria-hidden', String(!data.paid));
-    payment.hidden = !data.paid;
-    root.querySelector('#demo-payment-empty').hidden = data.paid;
-    receipt.classList.toggle('is-unpaid', !data.paid);
-    balance.textContent = data.amount;
-    root.querySelector('#demo-equation').textContent = data.equation;
-    root.querySelector('#demo-caption').textContent = data.caption;
+    payment.setAttribute('aria-hidden', String(!figures.paid));
+    payment.hidden = !figures.paid;
+    root.querySelector('#demo-payment-empty').hidden = figures.paid;
+    receipt.classList.toggle('is-unpaid', !figures.paid);
+    balance.textContent = peso(figures.owed);
+    root.querySelector('#demo-equation').textContent = figures.equation;
+    root.querySelector('#demo-caption').textContent = figures.caption;
     root.querySelector('#demo-mode').textContent = state.manual ? 'Ikaw ang may kontrol. Reset para magsimula.' : 'Sample ledger · Demo only';
     stageButtons.forEach(button => button.setAttribute('aria-pressed', String(button.dataset.stage === stage)));
-    recordButton.disabled = data.paid;
-    recordButton.replaceChildren(document.createTextNode(data.paid ? 'Sample payment recorded ✓' : 'Record sample ₱150 payment ↗'));
-    if (gsapReady) {
-      if (animate && !reduce.matches && stage !== previous) {
-        if (data.paid && !stageData[previous].paid) {
-          window.gsap.from(payment, { y: 8, opacity: 0, duration: 0.26, ease: 'ledger-out' });
-          window.gsap.from(receipt, { x: 24, y: 18, rotation: 13, opacity: 0, duration: 0.26, ease: 'ledger-out' });
-        }
-        window.gsap.from(balance, { opacity: 0.5, duration: 0.26, ease: 'ledger-out' });
+    recordButton.disabled = figures.paid;
+    recordButton.replaceChildren(document.createTextNode(figures.paid ? 'Sample payment recorded ✓' : 'Record sample ₱150 payment ↗'));
+    if (animate && animating()) {
+      const { gsap } = window;
+      if (figures.paid && !wasPaid) {
+        gsap.from(payment, { y: 6, opacity: 0, duration: 0.26, ease: 'ledger-out' });
+        // The slip prints downward out of the register.
+        gsap.fromTo(receipt, { clipPath: 'inset(0 0 100% 0)', y: -10 }, { clipPath: 'inset(0 0 0% 0)', y: 0, duration: 0.5, ease: 'ledger-out' });
+      }
+      if (balance.textContent !== previousAmount) {
+        gsap.fromTo(balance, { yPercent: 38, opacity: 0 }, { yPercent: 0, opacity: 1, duration: 0.32, ease: 'ledger-out' });
       }
     }
-    if (paintLedgerMotion) paintLedgerMotion();
-    if (announce) root.querySelector('#demo-status').textContent = `${data.caption} Natitirang utang: ${data.amount}.`;
+    if (announce) root.querySelector('#demo-status').textContent = `${figures.caption} Natitirang utang: ${balance.textContent}.`;
   }
 
-  function sortStock(order, animate = true) {
-    if (flipAnimation) { flipAnimation.progress(1).kill(); flipAnimation = null; }
-    const flip = gsapReady && window.Flip && !reduce.matches && animate ? window.Flip.getState(batches) : null;
-    state.order = order;
-    const sorted = [...batches].sort((a, b) => order === 'expiry'
-      ? Number(a.dataset.days) - Number(b.dataset.days)
-      : Number(a.dataset.arrival) - Number(b.dataset.arrival));
-    sorted.forEach(batch => batchList.appendChild(batch));
-    root.querySelectorAll('[data-stock-order]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.stockOrder === order)));
-    const caption = order === 'expiry' ? 'Nakaayos mula sa pinakamaagang expiry.' : 'Nakaayos ayon sa pagdating ng mga batch.';
-    root.querySelector('#stock-caption').textContent = caption;
-    if (animate) root.querySelector('#stock-status').textContent = `${caption} Ang expired na stock ay hiwalay at hindi ibinebenta.`;
-    if (flip) flipAnimation = window.Flip.from(flip, { duration: 0.28, ease: 'ledger-move', scale: false, onComplete: () => { flipAnimation = null; } });
+  function buildExtraRow(button) {
+    const row = document.createElement('div');
+    row.className = 'lp-ledger-row lp-extra';
+    row.dataset.extra = button.dataset.item;
+    const text = document.createElement('div');
+    const name = document.createElement('strong');
+    name.textContent = button.dataset.name;
+    const tag = document.createElement('span');
+    tag.className = 'lp-extra-tag';
+    tag.textContent = 'BAGO';
+    name.append(tag);
+    const detail = document.createElement('span');
+    detail.textContent = button.dataset.detail;
+    text.append(name, detail);
+    const amount = document.createElement('span');
+    amount.textContent = peso(Number(button.dataset.amount));
+    row.append(text, amount);
+    return row;
   }
+
+  function toggleItem(button) {
+    const key = button.dataset.item;
+    const index = state.extras.indexOf(key);
+    if (index === -1) {
+      state.extras.push(key);
+      const row = buildExtraRow(button);
+      extraRows.append(row);
+      if (animating()) window.gsap.from(row, { height: 0, minHeight: 0, paddingTop: 0, paddingBottom: 0, opacity: 0, duration: 0.34, ease: 'ledger-out', clearProps: 'all' });
+    } else {
+      state.extras.splice(index, 1);
+      const row = extraRows.querySelector(`[data-extra="${key}"]`);
+      if (row && animating()) {
+        delete row.dataset.extra;
+        window.gsap.to(row, { height: 0, minHeight: 0, paddingTop: 0, paddingBottom: 0, opacity: 0, duration: 0.24, ease: 'ledger-out', onComplete: () => row.remove() });
+      } else if (row) row.remove();
+    }
+    button.setAttribute('aria-pressed', String(index === -1));
+    renderLedger(state.stage, { manual: true, animate: true, announce: true });
+  }
+
+  function resetLedger() {
+    state.manual = false;
+    state.extras = [];
+    if (gsapReady) window.gsap.killTweensOf(extraRows.children);
+    extraRows.replaceChildren();
+    itemButtons.forEach(button => button.setAttribute('aria-pressed', 'false'));
+    renderLedger('utang', { announce: true });
+  }
+
+  /* ---------- Stock: simulated days move batches between shelf and segregation ---------- */
+
+  function renderStock({ animate = true, announce = false } = {}) {
+    if (flipAnimation) { flipAnimation.progress(1).kill(); flipAnimation = null; }
+    const flip = animate && animating() && window.Flip ? window.Flip.getState(batches) : null;
+    const remaining = batch => Number(batch.dataset.days) - state.offset;
+    const sellable = batches.filter(batch => remaining(batch) > 0).sort((a, b) => state.order === 'expiry'
+      ? remaining(a) - remaining(b)
+      : Number(a.dataset.arrival) - Number(b.dataset.arrival));
+    const expired = batches.filter(batch => remaining(batch) <= 0);
+    const soonest = [...sellable].sort((a, b) => remaining(a) - remaining(b))[0];
+    const priority = soonest && remaining(soonest) <= 7 ? soonest : null;
+    sellable.forEach(batch => batchList.appendChild(batch));
+    expired.forEach(batch => expiredItems.appendChild(batch));
+    batches.forEach(batch => {
+      const days = remaining(batch);
+      const isExpired = days <= 0;
+      batch.classList.toggle('is-expired', isExpired);
+      batch.classList.toggle('lp-batch-priority', batch === priority);
+      batch.querySelector('[data-days-label]').textContent = isExpired ? 'Expired na' : `${days} araw pa`;
+      const status = batch.querySelector('.lp-batch-status');
+      if (isExpired) status.textContent = 'Huwag ibenta';
+      else if (batch === priority) {
+        status.textContent = 'Unahing ibenta ';
+        const arrow = document.createElement('span');
+        arrow.setAttribute('aria-hidden', 'true');
+        arrow.textContent = '↗';
+        status.append(arrow);
+      } else status.textContent = 'Susunod';
+    });
+    root.querySelectorAll('[data-stock-order]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.stockOrder === state.order)));
+    if (dayInput) {
+      dayInput.value = String(state.offset);
+      dayInput.style.setProperty('--fill', `${(state.offset / Number(dayInput.max)) * 100}%`);
+      root.querySelector('#stock-days-output').textContent = state.offset ? `+${state.offset} araw` : 'Ngayon';
+    }
+    let caption = state.order === 'expiry' ? 'Nakaayos mula sa pinakamaagang expiry.' : 'Nakaayos ayon sa pagdating ng mga batch.';
+    if (state.offset) caption += ` Pagkalipas ng ${state.offset} araw${expired.length ? `, ${expired.length} batch ang naihiwalay` : ''}.`;
+    root.querySelector('#stock-caption').textContent = caption;
+    if (announce) root.querySelector('#stock-status').textContent = `${caption} Ang expired na stock ay hiwalay at hindi ibinebenta.`;
+    if (flip) {
+      flipAnimation = window.Flip.from(flip, {
+        duration: 0.42, ease: 'ledger-move', scale: false, nested: true,
+        onComplete: () => { flipAnimation = null; scheduleRefresh(); }
+      });
+    } else scheduleRefresh();
+  }
+
+  function sortStock(order) {
+    state.order = order;
+    renderStock({ announce: true });
+  }
+
+  /* ---------- Daily tape: focus a transaction to trace where it lands ---------- */
+
+  function focusTransaction(type) {
+    if (type) dayFlow.dataset.focus = type;
+    else delete dayFlow.dataset.focus;
+  }
+
+  /* ---------- Lifecycle helpers ---------- */
 
   function scheduleRefresh() {
     cancelAnimationFrame(refreshFrame);
@@ -115,13 +236,13 @@
   function revealHeading(element, hero = false) {
     const gsap = window.gsap;
     if (!window.SplitText) {
-      return gsap.from(element, { y: 16, opacity: 0, duration: 0.6, ease: 'ledger-out', scrollTrigger: hero ? undefined : { trigger: element, start: 'top 90%', once: true } });
+      return gsap.from(element, { y: 14, opacity: 0, duration: 0.55, ease: 'ledger-out', scrollTrigger: hero ? undefined : { trigger: element, start: 'top 90%', once: true } });
     }
     window.SplitText.create(element, {
       type: 'lines', mask: 'lines', autoSplit: true, aria: 'auto',
       onSplit(split) {
         const animation = gsap.from(split.lines, {
-          yPercent: 105, duration: 0.6, stagger: hero ? 0.08 : 0.06,
+          yPercent: 105, duration: 0.62, stagger: hero ? 0.08 : 0.06,
           ease: 'ledger-out',
           scrollTrigger: hero ? undefined : { trigger: element, start: 'top 90%', once: true },
           onComplete: () => { gsap.set(split.lines, { clearProps: 'transform' }); }
@@ -132,106 +253,46 @@
     });
   }
 
-  function setupHero() {
-    if (introductionPlayed || window.scrollY >= 100 || window.location.hash) return;
+  /* ---------- Scenes ---------- */
+
+  function setupHero(conditions) {
     const { gsap } = window;
-    revealHeading(root.querySelector('[data-hero-heading]'), true);
-    gsap.timeline({ id: 'landing-hero-intro', defaults: { ease: 'ledger-out' } })
-      .from('.lp-hero-enter', { y: 16, opacity: 0, duration: 0.5, stagger: 0.08 }, 0)
-      .from('.lp-preview-image-wrap', { clipPath: 'inset(0 0 100% 0)', duration: 0.85, ease: 'ledger-move' }, 0)
-      .from('.lp-hero-receipt', { y: 26, rotation: 14, opacity: 0, duration: 0.7 }, 0.2)
-      .from('.lp-hero-expiry', { x: -24, opacity: 0, duration: 0.65 }, 0.35);
-    introductionPlayed = true;
-  }
-
-  function ledgerFitsViewport() {
-    return root.querySelector('.lp-ledger-pin').offsetHeight <= window.innerHeight - header.offsetHeight - 24;
-  }
-
-  function setupHandoff(conditions) {
-    if (!conditions.desktop || !ledgerFitsViewport() || !window.Flip) return () => {};
-    const { gsap, Flip } = window;
-    const source = root.querySelector('.lp-preview-window');
-    const pin = root.querySelector('.lp-ledger-pin');
-    const scene = root.querySelector('.lp-ledger-scene');
-    const proxy = document.createElement('div');
-    proxy.className = 'lp-handoff-proxy';
-    proxy.setAttribute('aria-hidden', 'true');
-    proxy.setAttribute('inert', '');
-    // Only noninteractive artwork is copied. Live controls remain in place.
-    proxy.append(source.querySelector('.lp-window-bar').cloneNode(true));
-    proxy.append(source.querySelector('.lp-preview-image-wrap').cloneNode(true));
-    // A snapshot must not inherit the source's still-running entrance mask.
-    proxy.querySelectorAll('[style]').forEach(element => element.removeAttribute('style'));
-    proxy.querySelector('img').alt = '';
-    proxy.querySelector('img').removeAttribute('fetchpriority');
-    const caption = document.createElement('div');
-    caption.className = 'lp-preview-caption';
-    caption.textContent = 'Bawat tala, nasa tamang lugar.';
-    proxy.append(caption);
-    root.append(proxy);
-    const fragments = [...root.querySelectorAll('.lp-hero-receipt,.lp-hero-expiry')];
-    let geometry;
-    function measure() {
-      const sourceBounds = source.getBoundingClientRect();
-      const targetBounds = ledger.getBoundingClientRect();
-      const pinBounds = pin.getBoundingClientRect();
-      const spacer = pin.parentElement.classList.contains('pin-spacer') ? pin.parentElement : pin;
-      const pinTop = spacer.getBoundingClientRect().top + window.scrollY;
-      const start = Math.max(0, sourceBounds.top + window.scrollY - header.offsetHeight - 16);
-      const end = Math.max(start + 1, pinTop - header.offsetHeight - 16);
-      const targetTop = pinTop + targetBounds.top - pinBounds.top - Number(gsap.getProperty(scene, 'y'));
-      gsap.set(proxy, { width: sourceBounds.width, height: sourceBounds.height });
-      const fit = Flip.fit(proxy, ledger, { scale: true, getVars: true });
-      geometry = {
-        start, end, fits: ledgerFitsViewport(),
-        from: { x: sourceBounds.left, y: sourceBounds.top + window.scrollY - start },
-        to: { x: targetBounds.left, y: targetTop - end, scaleX: fit.scaleX, scaleY: fit.scaleY }
-      };
+    const figure = root.querySelector('.lp-product-preview');
+    const windowFrame = root.querySelector('.lp-preview-window');
+    const heroReceipt = root.querySelector('.lp-hero-receipt');
+    const heroExpiry = root.querySelector('.lp-hero-expiry');
+    if (!introductionPlayed && window.scrollY < 100 && !window.location.hash) {
+      revealHeading(root.querySelector('[data-hero-heading]'), true);
+      gsap.timeline({ id: 'landing-hero-intro', defaults: { ease: 'ledger-out' } })
+        .from('.lp-hero-enter', { y: 14, opacity: 0, duration: 0.5, stagger: 0.08 }, 0)
+        .from('.lp-preview-image-wrap', { clipPath: 'inset(0 0 100% 0)', duration: 0.85, ease: 'ledger-move' }, 0.05)
+        .from(heroReceipt, { clipPath: 'inset(0 0 100% 0)', y: -14, duration: 0.6 }, 0.55)
+        .from(heroExpiry, { x: -22, opacity: 0, duration: 0.55 }, 0.7);
+      introductionPlayed = true;
     }
-    measure();
-    let timeline;
-    let lastActive = null;
-    function syncVisibility() {
-      const trigger = timeline && timeline.scrollTrigger;
-      const focused = root.querySelector('#ledger-demo').contains(document.activeElement) || source.contains(document.activeElement);
-      const active = Boolean(trigger && trigger.progress > 0.005 && trigger.progress < 0.985 && !focused && geometry.fits);
-      if (active === lastActive) return;
-      lastActive = active;
-      proxy.style.visibility = active ? 'visible' : 'hidden';
-      source.style.opacity = active ? '0' : '1';
-      source.style.pointerEvents = active ? 'none' : '';
-      fragments.forEach(fragment => { fragment.style.visibility = active ? 'hidden' : ''; });
+    if (!(conditions.desktop && conditions.fine)) return () => {};
+    // Depth layers: the window tilts, artefacts drift at different distances.
+    const tiltX = gsap.quickTo(windowFrame, 'rotationX', { duration: 0.6, ease: 'power3.out' });
+    const tiltY = gsap.quickTo(windowFrame, 'rotationY', { duration: 0.6, ease: 'power3.out' });
+    const receiptX = gsap.quickTo(heroReceipt, 'x', { duration: 0.7, ease: 'power3.out' });
+    const receiptY = gsap.quickTo(heroReceipt, 'y', { duration: 0.7, ease: 'power3.out' });
+    const expiryX = gsap.quickTo(heroExpiry, 'x', { duration: 0.8, ease: 'power3.out' });
+    const expiryY = gsap.quickTo(heroExpiry, 'y', { duration: 0.8, ease: 'power3.out' });
+    function move(event) {
+      const bounds = figure.getBoundingClientRect();
+      const px = gsap.utils.clamp(-1, 1, ((event.clientX - bounds.left) / bounds.width) * 2 - 1);
+      const py = gsap.utils.clamp(-1, 1, ((event.clientY - bounds.top) / bounds.height) * 2 - 1);
+      tiltY(px * 3.5); tiltX(-py * 2.5);
+      receiptX(px * 14); receiptY(py * 10);
+      expiryX(px * -10); expiryY(py * -8);
     }
-    timeline = gsap.timeline({
-      onUpdate: syncVisibility,
-      scrollTrigger: {
-        id: 'landing-handoff', trigger: '.lp-hero',
-        start: () => geometry.start, end: () => geometry.end,
-        scrub: 0.35, invalidateOnRefresh: true,
-        onRefreshInit: measure, onRefresh: syncVisibility, onUpdate: syncVisibility
-      }
-    });
-    gsap.set(proxy, { clipPath: 'polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)' });
-    timeline.fromTo(proxy, {
-      x: () => geometry.from.x, y: () => geometry.from.y,
-      scaleX: 1, scaleY: 1, opacity: 1
-    }, {
-      x: () => geometry.to.x, y: () => geometry.to.y,
-      scaleX: () => geometry.to.scaleX, scaleY: () => geometry.to.scaleY,
-      duration: 1, ease: 'none'
-    }, 0)
-      .fromTo(proxy, { clipPath: 'polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)' }, {
-        clipPath: 'polygon(0% 0%, 100% 0%, 100% 0%, 0% 0%)', duration: 0.42, ease: 'none', immediateRender: false
-      }, 0.58)
-      .to(proxy, { opacity: 0, duration: 0.18, ease: 'none' }, 0.82);
-    root.addEventListener('focusin', syncVisibility);
+    function leave() { tiltX(0); tiltY(0); receiptX(0); receiptY(0); expiryX(0); expiryY(0); }
+    figure.addEventListener('pointermove', move);
+    figure.addEventListener('pointerleave', leave);
     return () => {
-      root.removeEventListener('focusin', syncVisibility);
-      source.style.removeProperty('opacity');
-      source.style.removeProperty('pointer-events');
-      fragments.forEach(fragment => fragment.style.removeProperty('visibility'));
-      proxy.remove();
+      figure.removeEventListener('pointermove', move);
+      figure.removeEventListener('pointerleave', leave);
+      gsap.set([windowFrame, heroReceipt, heroExpiry], { clearProps: 'transform' });
     };
   }
 
@@ -241,66 +302,34 @@
     const scene = root.querySelector('.lp-ledger-scene');
     const purchases = [...root.querySelectorAll('.lp-purchase')];
     const rule = root.querySelector('.lp-balance-rule');
-    if (!conditions.desktop) {
-      gsap.timeline({ scrollTrigger: { id: 'landing-ledger-entry', trigger: scene, start: 'top 88%', once: true } })
-        .from(ledger, { clipPath: 'inset(0 0 100% 0 round 10px)', duration: 0.65, ease: 'ledger-move' })
-        .from(purchases, { y: 12, opacity: 0, duration: 0.45, stagger: 0.08, ease: 'ledger-out' }, 0.2)
-        .from(rule, { scaleY: 0, duration: 0.5, ease: 'ledger-out' }, 0.4);
-      return () => {};
-    }
+    gsap.timeline({ scrollTrigger: { id: 'landing-ledger-entry', trigger: scene, start: 'top 88%', once: true } })
+      .from(ledger, { y: 18, duration: 0.6, ease: 'ledger-out' })
+      .from(purchases, { x: -10, duration: 0.42, stagger: 0.07, ease: 'ledger-out' }, 0.1)
+      .from(rule, { scaleY: 0, duration: 0.5, ease: 'ledger-out' }, 0.22)
+      .from('.lp-ledger-add button', { y: 8, opacity: 0, duration: 0.36, stagger: 0.05, ease: 'ledger-out' }, 0.3);
+    if (!conditions.desktop) return () => {};
     const progression = { value: 0 };
-    let pinEnabled = ledgerFitsViewport();
-    const rowSetters = purchases.map(row => ({ y: gsap.quickSetter(row, 'y', 'px'), opacity: gsap.quickSetter(row, 'opacity'), clip: gsap.quickSetter(row, 'clipPath') }));
-    const frameY = gsap.quickSetter(scene, 'y', 'px');
-    const ruleScale = gsap.quickSetter(rule, 'scaleY');
-    const clamp = gsap.utils.clamp(0, 1);
-    paintLedgerMotion = () => {
-      rowSetters.forEach((set, index) => {
-        const amount = state.manual || !pinEnabled ? 1 : clamp((progression.value - index * 0.035) / 0.15);
-        set.y(12 * (1 - amount));
-        set.opacity(0.35 + amount * 0.65);
-        set.clip(`inset(0 0 ${(1 - amount) * 100}% 0)`);
-      });
-      ruleScale(state.manual || !pinEnabled ? 1 : clamp((progression.value - 0.55) / 0.2));
-      frameY(pinEnabled ? -18 * clamp((progression.value - 0.8) / 0.2) : 0);
-    };
     let lastStage = null;
-    const timeline = gsap.timeline({ scrollTrigger: {
-      id: 'landing-ledger', trigger: '.lp-ledger-pin',
-      start: () => `top top+=${header.offsetHeight + 16}`,
-      end: () => `+=${window.innerHeight}`, pin: true, scrub: 0.35, invalidateOnRefresh: true,
-      onRefresh(self) {
-        pinEnabled = ledgerFitsViewport();
-        if (!pinEnabled) self.disable(true);
-        if (paintLedgerMotion) paintLedgerMotion();
+    gsap.timeline({
+      scrollTrigger: {
+        id: 'landing-ledger',
+        trigger: '.lp-ledger-pin',
+        start: () => `top top+=${header.offsetHeight + 48}`,
+        end: () => `+=${Math.max(640, Math.round(window.innerHeight * 0.9))}`,
+        scrub: 0.25,
+        invalidateOnRefresh: true
       }
-    }}).to(progression, { value: 1, duration: 1, ease: 'none', onUpdate() {
-      const next = progression.value < 0.35 ? 'utang' : progression.value < 0.55 ? 'bayad' : 'balance';
-      if (next !== lastStage) {
-        lastStage = next;
-        if (!state.manual) renderLedger(next, { animate: true });
+    }).to(progression, {
+      value: 1, duration: 1, ease: 'none',
+      onUpdate() {
+        const next = progression.value < 0.35 ? 'utang' : progression.value < 0.55 ? 'bayad' : 'balance';
+        if (next !== lastStage) {
+          lastStage = next;
+          if (!state.manual) renderLedger(next, { animate: true });
+        }
       }
-      if (paintLedgerMotion) paintLedgerMotion();
-    }});
-    paintLedgerMotion();
-    let resizeFrame;
-    function recheckPin() {
-      cancelAnimationFrame(resizeFrame);
-      resizeFrame = requestAnimationFrame(() => {
-        pinEnabled = ledgerFitsViewport();
-        const trigger = timeline.scrollTrigger;
-        if (pinEnabled && !trigger.enabled) trigger.enable(false, true);
-        else if (!pinEnabled && trigger.enabled) trigger.disable(true);
-        if (paintLedgerMotion) paintLedgerMotion();
-      });
-    }
-    window.addEventListener('resize', recheckPin);
-    return () => {
-      window.removeEventListener('resize', recheckPin);
-      cancelAnimationFrame(resizeFrame);
-      paintLedgerMotion = null;
-      gsap.set([...purchases, rule, scene], { clearProps: 'opacity,transform,clipPath' });
-    };
+    });
+    return () => { gsap.set([ledger, ...purchases, rule], { clearProps: 'opacity,transform,clipPath' }); };
   }
 
   function setupStock(conditions) {
@@ -308,17 +337,33 @@
     revealHeading(root.querySelector('#stock-title'));
     const backdrop = root.querySelector('.lp-stock-backdrop');
     const stage = root.querySelector('.lp-stock-stage');
-    gsap.timeline({ scrollTrigger: {
-      id: 'landing-stock-backdrop', trigger: stage, start: 'top 88%', end: 'bottom 14%',
-      scrub: 0.35, invalidateOnRefresh: true
-    }}).fromTo(backdrop, { scaleX: 1 }, { scaleX: () => window.innerWidth / stage.offsetWidth, duration: 0.28, ease: 'none' })
-      .to(backdrop, { scaleX: () => window.innerWidth / stage.offsetWidth, duration: 0.44, ease: 'none' })
-      .to(backdrop, { scaleX: 1, duration: 0.28, ease: 'none' });
+    // The ink surface opens to the viewport edges with a clip, never a stretch.
+    let bleed = { left: 0, right: 0 };
+    function measure() {
+      gsap.set(backdrop, { left: 0, right: 0 });
+      const bounds = stage.getBoundingClientRect();
+      bleed = { left: bounds.left, right: document.documentElement.clientWidth - bounds.right };
+      gsap.set(backdrop, { left: -bleed.left, right: -bleed.right });
+    }
+    measure();
+    const closed = () => `inset(0px ${bleed.right}px 0px ${bleed.left}px round 10px)`;
+    gsap.timeline({
+      scrollTrigger: {
+        id: 'landing-stock-backdrop', trigger: stage,
+        start: 'top 85%', end: 'bottom 20%', scrub: 0.3,
+        invalidateOnRefresh: true, onRefreshInit: measure
+      }
+    })
+      .fromTo(backdrop, { clipPath: closed }, { clipPath: 'inset(0px 0px 0px 0px round 0px)', duration: 0.3, ease: 'none' })
+      .to(backdrop, { clipPath: 'inset(0px 0px 0px 0px round 0px)', duration: 0.4, ease: 'none' })
+      .to(backdrop, { clipPath: closed, duration: 0.3, ease: 'none' });
     gsap.timeline({ scrollTrigger: { id: 'landing-stock-assembly', trigger: '.lp-stock-toolbar', start: 'top 90%', once: true }, defaults: { ease: 'ledger-out' } })
       .from('.lp-stock-toolbar', { y: 12, opacity: 0, duration: 0.5 })
-      .from('.lp-shelf-art img', { y: conditions.desktop ? 28 : 18, rotation: index => index % 2 ? 6 : -6, opacity: 0, duration: 0.7, stagger: 0.09 }, 0.15)
-      .from('.lp-shelf-rule', { scaleX: 0, transformOrigin: 'left', duration: 0.6, stagger: 0.09 }, 0.15)
-      .from('.lp-expired-art', { x: -12, opacity: 0, duration: 0.5 }, 0.4);
+      .from('.lp-stock-time', { y: 12, opacity: 0, duration: 0.5 }, 0.08)
+      .from('.lp-shelf-art img', { y: conditions.desktop ? 24 : 16, rotation: index => index % 2 ? 5 : -5, opacity: 0, duration: 0.65, stagger: 0.09 }, 0.16)
+      .from('.lp-shelf-rule', { scaleX: 0, transformOrigin: 'left', duration: 0.55, stagger: 0.09 }, 0.16)
+      .from('.lp-expired-art', { x: -10, opacity: 0, duration: 0.45 }, 0.4);
+    return () => { gsap.set(backdrop, { clearProps: 'left,right,clipPath' }); };
   }
 
   function setupDaily() {
@@ -326,9 +371,9 @@
     revealHeading(root.querySelector('#daily-title'));
     const timeline = gsap.timeline({ scrollTrigger: { id: 'landing-daily', trigger: '.lp-day-scene', start: 'top 86%', once: true }, defaults: { ease: 'ledger-out' } });
     timeline.from('.lp-tape', { clipPath: 'inset(0 0 100% 0)', duration: 0.85, ease: 'ledger-move' }, 0)
-      .from('.lp-tape-row', { y: 12, opacity: 0, duration: 0.45, stagger: 0.08 }, 0.18)
-      .from('.lp-day-total', { y: 16, opacity: 0, duration: 0.6, stagger: 0.12 }, 0.55)
-      .from('.lp-day-settlement', { y: 24, opacity: 0, duration: 0.6 }, 1);
+      .from('.lp-tape-row', { y: 12, opacity: 0, duration: 0.45, stagger: 0.09, clearProps: 'opacity,transform' }, 0.18)
+      .from('.lp-day-total', { y: 16, opacity: 0, duration: 0.55, stagger: 0.12, clearProps: 'opacity,transform' }, 0.55)
+      .from('.lp-day-settlement', { y: 20, opacity: 0, duration: 0.55 }, 0.95);
     if (window.DrawSVGPlugin) timeline.fromTo('.lp-flow-lines path', { drawSVG: '0%' }, {
       drawSVG: '100%', duration: 0.85, stagger: 0.15, ease: 'ledger-move',
       onComplete: () => gsap.set('.lp-flow-lines path', { clearProps: 'strokeDashoffset,strokeDasharray' })
@@ -338,11 +383,11 @@
   function setupClosing() {
     const { gsap } = window;
     revealHeading(root.querySelector('#faq-title'));
-    gsap.from('.lp-faq-list', { y: 12, opacity: 0, duration: 0.5, ease: 'ledger-out', scrollTrigger: { id: 'landing-faq', trigger: '.lp-faq-list', start: 'top 90%', once: true } });
+    gsap.from('.lp-faq-list details', { y: 12, opacity: 0, duration: 0.45, stagger: 0.07, ease: 'ledger-out', scrollTrigger: { id: 'landing-faq', trigger: '.lp-faq-list', start: 'top 90%', once: true } });
     revealHeading(root.querySelector('#closing-title'));
     gsap.timeline({ scrollTrigger: { id: 'landing-closing', trigger: '.lp-closing-inner', start: 'top 90%', once: true }, defaults: { ease: 'ledger-out' } })
       .from('.lp-closing-mark', { x: 28, rotation: -8, opacity: 0, duration: 0.8 })
-      .from('.lp-closing-actions', { y: 12, opacity: 0, duration: 0.55 }, 0.2);
+      .from('.lp-closing-actions', { y: 12, opacity: 0, duration: 0.52 }, 0.18);
   }
 
   function revealFocusedControl(event) {
@@ -351,7 +396,8 @@
     const scenes = [
       ['.lp-hero-actions', 'landing-hero-intro'],
       ['#ledger-demo', 'landing-ledger-entry'],
-      ['.lp-stock-controls', 'landing-stock-assembly'],
+      ['#inventory-story', 'landing-stock-assembly'],
+      ['#daily-overview', 'landing-daily'],
       ['#faq', 'landing-faq'],
       ['.lp-closing-actions', 'landing-closing']
     ];
@@ -388,10 +434,9 @@
         return;
       }
       const cleanups = [];
-      setupHero();
-      cleanups.push(setupHandoff(conditions));
+      cleanups.push(setupHero(conditions));
       cleanups.push(setupLedger(conditions));
-      setupStock(conditions);
+      cleanups.push(setupStock(conditions));
       setupDaily();
       setupClosing();
       if (conditions.fine) {
@@ -483,15 +528,29 @@
     controller = new AbortController();
     const options = { signal: controller.signal };
     stageButtons.forEach(button => button.addEventListener('click', () => renderLedger(button.dataset.stage, { manual: true, animate: true, announce: true }), options));
+    itemButtons.forEach(button => button.addEventListener('click', () => toggleItem(button), options));
     recordButton.addEventListener('click', () => {
       if (stageData[state.stage].paid) return;
       renderLedger('bayad', { manual: true, animate: true, announce: true });
     }, options);
-    root.querySelector('#reset-ledger').addEventListener('click', () => {
-      state.manual = false;
-      renderLedger('utang', { announce: true });
-    }, options);
+    root.querySelector('#reset-ledger').addEventListener('click', resetLedger, options);
     root.querySelectorAll('[data-stock-order]').forEach(button => button.addEventListener('click', () => sortStock(button.dataset.stockOrder), options));
+    if (dayInput) {
+      dayInput.addEventListener('input', () => {
+        const next = Number(dayInput.value);
+        if (next === state.offset) return;
+        state.offset = next;
+        renderStock();
+      }, options);
+      dayInput.addEventListener('change', () => renderStock({ animate: false, announce: true }), options);
+    }
+    root.querySelectorAll('.lp-tape-row').forEach(row => {
+      row.addEventListener('pointerenter', () => focusTransaction(row.dataset.transaction), options);
+      row.addEventListener('focus', () => focusTransaction(row.dataset.transaction), options);
+      row.addEventListener('click', () => focusTransaction(row.dataset.transaction), options);
+    });
+    dayFlow.addEventListener('pointerleave', event => { if (event.pointerType === 'mouse') focusTransaction(null); }, options);
+    dayFlow.addEventListener('focusout', event => { if (!dayFlow.contains(event.relatedTarget)) focusTransaction(null); }, options);
     root.addEventListener('click', navigateToAnchor, options);
     root.addEventListener('focusin', revealFocusedControl, options);
     window.addEventListener('popstate', () => { pendingHashAlignment = Boolean(window.location.hash); scheduleRefresh(); }, options);
@@ -516,8 +575,8 @@
       root.querySelectorAll('.lp-hero,#ledger-demo,#inventory-story,#daily-overview,#faq,.lp-closing').forEach(section => observer.observe(section));
     }
     renderLedger(state.stage);
-    sortStock(state.order, false);
-    root.querySelectorAll('.lp-stage-controls,.lp-ledger-actions,.lp-stock-controls').forEach(element => { element.hidden = false; });
+    renderStock({ animate: false });
+    root.querySelectorAll('.lp-stage-controls,.lp-ledger-actions,.lp-ledger-add,.lp-stock-controls,.lp-stock-time,.lp-day-hint').forEach(element => { element.hidden = false; });
     try {
       buildMotion();
     } catch (error) {
