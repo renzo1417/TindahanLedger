@@ -34,33 +34,46 @@
     </div>
   </section>
 
-  <!-- Credit Overview & Singilin Status Banner -->
-  <section class="card-white p-4 anim-fade-up anim-delay-1" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; background: var(--color-surface-white); border: 1px solid var(--color-border-main); border-radius: var(--radius-card); border-left: 4px solid var(--color-ink-primary);">
-    <div style="display: flex; align-items: center; gap: 24px; flex-wrap: wrap;">
-      <div>
-        <span style="font-family: var(--font-mono); font-size: 11px; color: var(--color-ink-muted); text-transform: uppercase;">Kabuuang Pautang</span>
-        <div style="font-family: var(--font-mono); font-size: 20px; font-weight: 700; color: var(--color-ink-primary);">₱{{ total_utang_balance|floatformat:2 }}</div>
+  <!-- 3 Customer & Credit KPI Cards -->
+  <section class="kpi-grid anim-fade-up anim-delay-1" style="grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));">
+    <!-- Card 1: Kabuuang Pautang -->
+    <div class="kpi-card">
+      <div class="kpi-header">
+        <span class="kpi-label">Kabuuang Pautang</span>
+        <span class="badge badge-active-outline">Kredito</span>
       </div>
-      <div style="width: 1px; height: 32px; background: var(--color-border-main);"></div>
-      <div>
-        <span style="font-family: var(--font-mono); font-size: 11px; color: var(--color-ink-muted); text-transform: uppercase;">Overdue (&gt;14 Araw)</span>
-        <div style="font-family: var(--font-mono); font-size: 20px; font-weight: 700; color: var(--color-primary-orange);">{{ overdue_count }} suki</div>
-      </div>
-      <div style="width: 1px; height: 32px; background: var(--color-border-main);"></div>
-      <div>
-        <span style="font-family: var(--font-mono); font-size: 11px; color: var(--color-ink-muted); text-transform: uppercase;">Aktibong Nagbabayad</span>
-        <div style="font-family: var(--font-mono); font-size: 20px; font-weight: 700; color: var(--color-status-success-text);">{{ active_count }} suki</div>
+      <div class="kpi-body">
+        <div class="kpi-value" style="font-family: var(--font-mono); font-size: 26px;">₱{{ total_utang_balance|floatformat:2 }}</div>
+        <p class="kpi-subtext">Across {{ total_customers_count }} registered suki accounts</p>
       </div>
     </div>
-    <div style="display: flex; gap: 10px;">
-      <a href="{% url 'reports:index' %}" class="btn btn-secondary btn-sm" style="font-size: 12px; text-decoration: none;">
-        <span>Aging Analysis</span>
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-      </a>
-      <a href="?filter=overdue" class="btn btn-primary btn-sm" style="font-size: 12px; text-decoration: none;">
-        <span>I-filter ang Overdue</span>
-      </a>
-    </div>
+
+    <!-- Card 2: Overdue Accounts -->
+    <a href="?filter=overdue" class="kpi-card kpi-card-alert" style="text-decoration: none; color: inherit;">
+      <div class="kpi-header">
+        <span class="kpi-label">Overdue (>14 Araw)</span>
+        <span class="badge badge-overdue-solid">{{ overdue_count }} Suki</span>
+      </div>
+      <div class="kpi-body">
+        <div class="kpi-value" style="font-family: var(--font-mono); font-size: 26px; color: var(--color-primary-orange);">{{ overdue_count }} suki</div>
+        <p class="kpi-subtext" style="color: var(--color-primary-orange);">Kailangang paalalahanan sa bayad</p>
+      </div>
+    </a>
+
+    <!-- Card 3: Aktibong Nagbabayad & Reports -->
+    <a href="{% url 'reports:index' %}" class="kpi-card" style="text-decoration: none; color: inherit;">
+      <div class="kpi-header">
+        <span class="kpi-label">Katayuan ng Singilin</span>
+        <span class="badge badge-settled">Aging Reports</span>
+      </div>
+      <div class="kpi-body">
+        <div class="kpi-value" style="font-family: var(--font-mono); font-size: 26px;">{{ active_count }} Aktibo</div>
+        <p class="kpi-subtext" style="display: flex; align-items: center; gap: 4px;">
+          <span>Tingnan ang buong pagsusuri</span>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+        </p>
+      </div>
+    </a>
   </section>
 
   <!-- Filter & Search Band -->
