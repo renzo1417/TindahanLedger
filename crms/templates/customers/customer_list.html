@@ -34,6 +34,35 @@
     </div>
   </section>
 
+  <!-- Credit Overview & Singilin Status Banner -->
+  <section class="card-white p-4 anim-fade-up anim-delay-1" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; background: var(--color-surface-white); border: 1px solid var(--color-border-main); border-radius: var(--radius-card); border-left: 4px solid var(--color-ink-primary);">
+    <div style="display: flex; align-items: center; gap: 24px; flex-wrap: wrap;">
+      <div>
+        <span style="font-family: var(--font-mono); font-size: 11px; color: var(--color-ink-muted); text-transform: uppercase;">Kabuuang Pautang</span>
+        <div style="font-family: var(--font-mono); font-size: 20px; font-weight: 700; color: var(--color-ink-primary);">₱{{ total_utang_balance|floatformat:2 }}</div>
+      </div>
+      <div style="width: 1px; height: 32px; background: var(--color-border-main);"></div>
+      <div>
+        <span style="font-family: var(--font-mono); font-size: 11px; color: var(--color-ink-muted); text-transform: uppercase;">Overdue (&gt;14 Araw)</span>
+        <div style="font-family: var(--font-mono); font-size: 20px; font-weight: 700; color: var(--color-primary-orange);">{{ overdue_count }} suki</div>
+      </div>
+      <div style="width: 1px; height: 32px; background: var(--color-border-main);"></div>
+      <div>
+        <span style="font-family: var(--font-mono); font-size: 11px; color: var(--color-ink-muted); text-transform: uppercase;">Aktibong Nagbabayad</span>
+        <div style="font-family: var(--font-mono); font-size: 20px; font-weight: 700; color: var(--color-status-success-text);">{{ active_count }} suki</div>
+      </div>
+    </div>
+    <div style="display: flex; gap: 10px;">
+      <a href="{% url 'reports:index' %}" class="btn btn-secondary btn-sm" style="font-size: 12px; text-decoration: none;">
+        <span>Aging Analysis</span>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+      </a>
+      <a href="?filter=overdue" class="btn btn-primary btn-sm" style="font-size: 12px; text-decoration: none;">
+        <span>I-filter ang Overdue</span>
+      </a>
+    </div>
+  </section>
+
   <!-- Filter & Search Band -->
   <section class="filter-bar anim-fade-up anim-delay-2">
     <!-- Segmented Status Tabs -->
