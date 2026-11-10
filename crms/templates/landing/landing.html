@@ -25,7 +25,7 @@
   <a class="lp-skip" href="#main-content">Skip to main content</a>
   <header class="lp-header"><div class="lp-container lp-header-inner">
     <a class="lp-brand" href="{% url 'landing:landing' %}" aria-label="TindaHan Ledger home"><span class="lp-brand-mark" aria-hidden="true">t.</span><span>TindaHan<span class="lp-brand-ledger">Ledger</span></span></a>
-    <nav class="lp-nav" aria-label="Sections"><a href="#ledger-demo">Ang ledger</a><a href="#inventory-story">Ang stock</a><a href="#faq">Mga tanong</a></nav>
+    <nav class="lp-nav" aria-label="Sections"><a href="#ledger-demo">Ang ledger</a><a href="#inventory-story">Ang stock</a><a href="#daily-overview">Ang araw</a><a href="#mga-tampok">Mga tampok</a><a href="#faq">Mga tanong</a></nav>
     <div class="lp-account"><a class="lp-signin" href="{% url 'login:login' %}">Sign in</a><a class="lp-button lp-button-small" href="{% url 'register:register' %}" data-magnetic><span>Create account <span aria-hidden="true">↗</span></span></a></div>
   </div></header>
   <main id="main-content" tabindex="-1">
@@ -35,6 +35,29 @@
         <h1 id="hero-title" data-hero-heading>Bawat galaw. <br><span class="lp-orange-word">Malinaw.</span></h1>
         <p class="lp-hero-description lp-hero-enter">Utang, bayad, at stock sa isang talaan para sa araw-araw mong tindahan.</p>
         <div class="lp-hero-actions lp-hero-enter"><a class="lp-button" href="{% url 'register:register' %}" data-magnetic><span>Create account <span aria-hidden="true">↗</span></span></a><a class="lp-text-link" href="#ledger-demo">Try the ledger <span aria-hidden="true">↓</span></a></div>
+        <div class="lp-hero-stats lp-hero-enter">
+          <div class="lp-stat-pill">
+            <span class="lp-stat-code">[01]</span>
+            <div>
+              <strong>Talaan ng Suki</strong>
+              <span>Bawas agad ang hulog sa utang</span>
+            </div>
+          </div>
+          <div class="lp-stat-pill">
+            <span class="lp-stat-code">[02]</span>
+            <div>
+              <strong>FIFO Expiry Sort</strong>
+              <span>Unahing ibenta ang malapit mag-expire</span>
+            </div>
+          </div>
+          <div class="lp-stat-pill">
+            <span class="lp-stat-code">[03]</span>
+            <div>
+              <strong>Balanse ng Kaha</strong>
+              <span>Hiwalay ang benta sa bayad sa utang</span>
+            </div>
+          </div>
+        </div>
       </div>
       <figure class="lp-product-preview">
         <div class="lp-preview-window">
@@ -128,13 +151,82 @@
         <details class="lp-accounting"><summary>Bakit magkaiba ang benta at perang pumasok?<span class="lp-plus" aria-hidden="true">+</span></summary><p>Ang ₱150 na bayad sa dating utang ay perang pumasok, hindi bagong benta. Kaya ₱470 ang benta at ₱270 ang perang pumasok sa sample na ito.</p></details>
       </div>
     </section>
-    <section class="lp-faq lp-container" id="faq" aria-labelledby="faq-title"><div><h2 id="faq-title" data-reveal-heading>Bago ka <br>magsimula.</h2><p class="lp-section-description">Kaunting sagot sa mga tanong mo.</p></div><div class="lp-faq-list" data-reveal>
-      <details><summary>Para kanino ang TindaHan Ledger?<span class="lp-plus" aria-hidden="true">+</span></summary><p>Para sa sari-sari store owners na gustong ayusin ang tala ng utang, bayad, at stock.</p></details>
-      <details><summary>Totoong customer data ba ang demo?<span class="lp-plus" aria-hidden="true">+</span></summary><p>Hindi. Sample data lang ito; walang totoong customer record na binabago.</p></details>
-      <details><summary>Paano magsisimula?<span class="lp-plus" aria-hidden="true">+</span></summary><p><a href="{% url 'register:register' %}">Create account</a> para sa iyong tindahan. May account na? <a href="{% url 'login:login' %}">Sign in.</a></p></details>
-    </div></section>
+    <section class="lp-features-section lp-container" id="mga-tampok" aria-labelledby="features-title">
+      <div class="lp-section-intro">
+        <p class="lp-eyebrow">ARAW-ARAW NA KALAKALAN</p>
+        <h2 id="features-title" data-reveal-heading>Dinisenyo para sa <br>tunay na tindahan.</h2>
+        <p class="lp-section-description">Tatlong simpleng patakaran sa likod ng malinis na kwenta at paninda.</p>
+      </div>
+      <div class="lp-features-grid">
+        <article class="lp-feature-card">
+          <div>
+            <span class="lp-feature-tag">[01] KREDITO AT SUKI</span>
+            <h3>Bawas agad sa bawat hulog.</h3>
+            <p>Wala nang nawawalang pilyas ng kwaderno o hindi maunawaang lista. Bawat pautang at hulog ay may sariling talaan at resibo para walang alitan sa suki.</p>
+          </div>
+          <div class="lp-feature-meta">
+            <span>MODYUL: TALAAN NG UTANG</span>
+            <span>✓ Tumpak na balanse</span>
+          </div>
+        </article>
+        <article class="lp-feature-card">
+          <div>
+            <span class="lp-feature-tag">[02] FIFO AT ESTANTE</span>
+            <h3>Unang dumating, unang ibenta.</h3>
+            <p>Iwas tapon sa panindang napabayaan sa ilalim o likod. Awtomatikong pinapangkat ang mga produktong malapit nang mag-expire upang mauna sa harap ng estante.</p>
+          </div>
+          <div class="lp-feature-meta">
+            <span>MODYUL: BATCH TRACKING</span>
+            <span>✓ Iwas tapon</span>
+          </div>
+        </article>
+        <article class="lp-feature-card">
+          <div>
+            <span class="lp-feature-tag">[03] BALANSE NG KAHA</span>
+            <h3>Benta laban sa perang pumasok.</h3>
+            <p>Ibinubukod ang bagong benta sa natanggap na bayad sa lumang pautang. Bago magsara sa gabi, tugma ang hawak na barya at papel sa talaan ng tindahan.</p>
+          </div>
+          <div class="lp-feature-meta">
+            <span>MODYUL: DAILY RECONCILIATION</span>
+            <span>✓ Malinaw na kaha</span>
+          </div>
+        </article>
+      </div>
+    </section>
+    <section class="lp-faq lp-container" id="faq" aria-labelledby="faq-title">
+      <div>
+        <h2 id="faq-title" data-reveal-heading>Bago ka <br>magsimula.</h2>
+        <p class="lp-section-description">Mga kasagutan sa araw-araw na pagpapatakbo ng tindahan gamit ang ledger.</p>
+      </div>
+      <div class="lp-faq-list" data-reveal>
+        <details>
+          <summary>Para kanino ang TindaHan Ledger?<span class="lp-plus" aria-hidden="true">+</span></summary>
+          <p>Para sa sari-sari store owners, tindero, at tindera na gustong magkaroon ng organisadong talaan ng utang, bayad, at inbentaryo nang hindi umaasa sa kwadernong madaling mapunit o mawala.</p>
+        </details>
+        <details>
+          <summary>Paano kung hulugan o pira-piraso ang bayad ni suki?<span class="lp-plus" aria-hidden="true">+</span></summary>
+          <p>Tanggapin lamang ang halaga bilang hulog. Awtomatikong ibabawas ng ledger ang ibinayad sa natitirang utang at magtatala ng resibo kasama ang petsa at oras.</p>
+        </details>
+        <details>
+          <summary>Paano nalalaman kung aling batch ang dapat unahing ibenta?<span class="lp-plus" aria-hidden="true">+</span></summary>
+          <p>Nakaayos ang inbentaryo gamit ang First-In, First-Out (FIFO) at expiry sorting. Ang mga batch na 7 araw na lang ang nalalabi ay may babala upang agad maipwesto sa harap ng estante.</p>
+        </details>
+        <details>
+          <summary>Ano ang mangyayari sa panindang lumampas na sa expiry date?<span class="lp-plus" aria-hidden="true">+</span></summary>
+          <p>Awtomatiko itong inililipat sa talaan ng "Kahon ng Segregasyon" (Huwag Ibenta) upang maibukod sa paninda at maiwasan ang reklamo o pagkalason ng mamimili.</p>
+        </details>
+        <details>
+          <summary>Kailangan ba ng internet connection sa loob ng tindahan?<span class="lp-plus" aria-hidden="true">+</span></summary>
+          <p>Hindi palagi. Dinisenyo ang interface upang maging magaan at mabilis gamitin sa browser kahit sa mabagal na mobile data o lokal na network sa counter.</p>
+        </details>
+        <details>
+          <summary>Totoong customer data ba ang nakikita sa demo?<span class="lp-plus" aria-hidden="true">+</span></summary>
+          <p>Hindi. Ang mga tala sa demo (tulad ni Aling Rosa) ay sample data lamang para masubukan ang daloy. Kapag nag-create ka ng account, magsisimula ka sa malinis na talaan ng sarili mong tindahan.</p>
+        </details>
+      </div>
+    </section>
     <section class="lp-closing lp-container" aria-labelledby="closing-title"><div class="lp-closing-inner"><h2 id="closing-title" data-reveal-heading>Mas maayos ang <br>susunod na araw.</h2><div class="lp-closing-actions"><a class="lp-button lp-button-ink" href="{% url 'register:register' %}" data-magnetic><span>Create account <span aria-hidden="true">↗</span></span></a><a class="lp-text-link" href="{% url 'login:login' %}">Sign in <span aria-hidden="true">↗</span></a></div><span class="lp-closing-mark" aria-hidden="true">t.</span></div></section>
   </main>
-  <footer class="lp-footer lp-container"><a class="lp-brand" href="{% url 'landing:landing' %}">TindaHan Ledger</a><span>Para sa araw-araw na tindahan.</span><nav aria-label="Footer"><a href="#ledger-demo">Ang ledger</a><a href="#inventory-story">Ang stock</a><a href="#daily-overview">Ang araw mo</a><a href="{% url 'login:login' %}">Sign in</a></nav></footer>
+  <footer class="lp-footer lp-container"><a class="lp-brand" href="{% url 'landing:landing' %}">TindaHan Ledger</a><span>Para sa araw-araw na tindahan.</span><nav aria-label="Footer"><a href="#ledger-demo">Ang ledger</a><a href="#inventory-story">Ang stock</a><a href="#daily-overview">Ang araw</a><a href="#mga-tampok">Mga tampok</a><a href="{% url 'login:login' %}">Sign in</a></nav></footer>
 </body>
 </html>
