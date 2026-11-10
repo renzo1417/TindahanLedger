@@ -25,6 +25,7 @@ urlpatterns = [
     path('settings/', include('apps.user_settings.urls')),
     path('utang/', include('apps.customers.urls', namespace='customers')),
     path('inventory/', include('apps.inventory.urls', namespace='inventory')),
+    path('reports/', include('apps.reports.urls', namespace='reports')),
     path('', include('apps.landing.urls')),
     path('', include('apps.home.urls')),
 ]

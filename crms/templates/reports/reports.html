@@ -1,0 +1,401 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Store Reports & Financial Analytics — {{ global_store_profile.store_name }}{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/home/home.css' %}">
+<style>
+  .report-panel {
+    background: var(--color-surface-white);
+    border: 1px solid var(--color-border-main);
+    border-radius: var(--radius-card);
+    padding: 24px;
+    box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.04);
+  }
+  .report-panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 16px;
+    margin-bottom: 20px;
+    border-bottom: 1px solid var(--color-border-hairline);
+  }
+  .report-panel-title {
+    font-family: var(--font-sans);
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--color-ink-primary);
+    margin: 0;
+  }
+  .report-panel-subtitle {
+    font-size: 12px;
+    color: var(--color-ink-secondary);
+    margin-top: 3px;
+  }
+  .report-dual-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+  @media (max-width: 900px) {
+    .report-dual-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+  .reconciliation-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--color-border-hairline);
+    font-size: 13px;
+  }
+  .reconciliation-row:last-child {
+    border-bottom: none;
+    padding-top: 14px;
+    font-weight: 700;
+    font-size: 14px;
+  }
+  .progress-track {
+    width: 100%;
+    height: 8px;
+    background: rgba(18, 18, 18, 0.08);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-top: 6px;
+  }
+  .progress-fill-orange {
+    height: 100%;
+    background: var(--color-primary-orange);
+    border-radius: 4px;
+  }
+  .progress-fill-neutral {
+    height: 100%;
+    background: var(--color-ink-primary);
+    border-radius: 4px;
+  }
+  .category-item {
+    padding: 10px 0;
+    border-bottom: 1px solid var(--color-border-hairline);
+  }
+  .category-item:last-child {
+    border-bottom: none;
+  }
+  .category-top-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .report-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  .report-table th {
+    text-align: left;
+    padding: 10px 14px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--color-ink-secondary);
+    background: var(--color-canvas-bg);
+    border-bottom: 1px solid var(--color-border-main);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .report-table td {
+    padding: 14px;
+    border-bottom: 1px solid var(--color-border-hairline);
+    color: var(--color-ink-primary);
+  }
+  .report-table tr:hover td {
+    background: rgba(0, 0, 0, 0.015);
+  }
+  .tabular-num {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+  }
+  .print-only {
+    display: none;
+  }
+  @media print {
+    .sidebar-nav, .bottom-nav, .header-actions, .masthead-bar {
+      display: none !important;
+    }
+    .app-main-content {
+      margin-left: 0 !important;
+      padding: 0 !important;
+    }
+    .print-only {
+      display: block;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block page_heading %}Reports & Financial Analytics{% endblock %}
+{% block page_subheading %}Sales, Credit Aging, and Expiry Risk Overview • {{ current_date }}{% endblock %}
+
+{% block content %}
+<div class="container-app-fluid space-y-6" style="padding-bottom: 40px;">
+  <!-- Screen Header -->
+  <section class="section-header anim-fade-up">
+    <div>
+      <h1 class="page-title">Financial & Credit Reports</h1>
+      <p class="page-subtitle">Sari-Sari Store Ledger • Summary as of {{ current_date }}</p>
+    </div>
+    <div class="header-actions">
+      <button type="button" class="btn btn-secondary" onclick="window.print()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+        <span>Print Summary</span>
+      </button>
+      <button type="button" class="btn btn-primary" onclick="showToast('Exporting financial report CSV...', 'check')">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+        <span>Export Data</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- Financial KPI Cards -->
+  <section class="kpi-grid">
+    <!-- Card 1: Today's Sales -->
+    <div class="kpi-card anim-fade-up anim-delay-1">
+      <div class="kpi-header">
+        <span class="kpi-label">Today's Sales (Kabuuang Benta)</span>
+        <span class="badge badge-success">Active</span>
+      </div>
+      <div class="kpi-body">
+        <div class="kpi-value tabular-num">₱{{ kpis.today_sales_total|floatformat:2 }}</div>
+        <p class="kpi-subtext">{{ kpis.sales_transactions_count }} sales transactions recorded</p>
+      </div>
+    </div>
+
+    <!-- Card 2: Cash in Drawer -->
+    <div class="kpi-card anim-fade-up anim-delay-1">
+      <div class="kpi-header">
+        <span class="kpi-label">Cash Collected (Perang Pumasok)</span>
+        <span class="badge badge-settled">Cash Count</span>
+      </div>
+      <div class="kpi-body">
+        <div class="kpi-value tabular-num">₱{{ kpis.today_cash_collected|floatformat:2 }}</div>
+        <p class="kpi-subtext">Sales cash + {{ kpis.utang_settlements_count }} utang payments</p>
+      </div>
+    </div>
+
+    <!-- Card 3: Active Utang Receivables -->
+    <div class="kpi-card anim-fade-up anim-delay-2">
+      <div class="kpi-header">
+        <span class="kpi-label">Total Utang Receivables</span>
+        <span class="badge badge-active-outline">Collectible</span>
+      </div>
+      <div class="kpi-body">
+        <div class="kpi-value tabular-num">₱{{ kpis.total_utang_receivables|floatformat:2 }}</div>
+        <p class="kpi-subtext">Active store credit across all suki</p>
+      </div>
+    </div>
+
+    <!-- Card 4: Overdue Utang Alert -->
+    <div class="kpi-card kpi-card-alert anim-fade-up anim-delay-2">
+      <div class="kpi-header">
+        <span class="kpi-label">Overdue Credit (&gt;14 Araw)</span>
+        <span class="badge badge-overdue-solid">Singilin</span>
+      </div>
+      <div class="kpi-body">
+        <div class="kpi-value tabular-num" style="color: var(--color-primary-orange);">₱{{ kpis.overdue_utang_total|floatformat:2 }}</div>
+        <p class="kpi-subtext">4 accounts needing payment follow-up</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Dual Reconciliation & Category Breakdown Section -->
+  <section class="report-dual-grid anim-fade-up anim-delay-2">
+    <!-- Panel 1: End-of-Day Cash Reconciliation -->
+    <div class="report-panel">
+      <div class="report-panel-header">
+        <div>
+          <h2 class="report-panel-title">Balanse ng Kaha Bago Magsara</h2>
+          <p class="report-panel-subtitle">End-of-Day Cash Reconciliation vs Sales Tape</p>
+        </div>
+        <span class="badge badge-settled">Daily Tape</span>
+      </div>
+      <div style="margin-bottom: 18px;">
+        <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px;">
+          <span>Cash Sales ({{ reconciliation.cash_sales_pct }}%)</span>
+          <span>Credit / Pautang ({{ reconciliation.credit_sales_pct }}%)</span>
+        </div>
+        <div class="progress-track" style="display: flex;">
+          <div style="width: {{ reconciliation.cash_sales_pct }}%; background: var(--color-ink-primary);"></div>
+          <div style="width: {{ reconciliation.credit_sales_pct }}%; background: var(--color-primary-orange);"></div>
+        </div>
+      </div>
+      <div class="reconciliation-row">
+        <span>Benta sa Cash (Cash Sales)</span>
+        <span class="tabular-num">₱{{ reconciliation.cash_sales|floatformat:2 }}</span>
+      </div>
+      <div class="reconciliation-row">
+        <span>Benta sa Utang (Credit Sales)</span>
+        <span class="tabular-num">₱{{ reconciliation.credit_sales|floatformat:2 }}</span>
+      </div>
+      <div class="reconciliation-row">
+        <span>Bayad sa Lumang Utang (Debt Collected)</span>
+        <span class="tabular-num" style="color: var(--color-status-success-text); font-weight: 600;">+ ₱{{ reconciliation.utang_collections|floatformat:2 }}</span>
+      </div>
+      <div class="reconciliation-row" style="background: var(--color-canvas-bg); padding-inline: 12px; border-radius: var(--radius-badge); margin-top: 10px;">
+        <span>Aktwal na Perang Pumasok sa Kaha</span>
+        <span class="tabular-num" style="font-size: 16px; color: var(--color-ink-primary);">₱{{ reconciliation.cash_in_drawer|floatformat:2 }}</span>
+      </div>
+      <p style="font-size: 11px; color: var(--color-ink-secondary); margin-top: 12px; line-height: 1.5;">
+        Paalala: Ang ₱{{ reconciliation.utang_collections|floatformat:2 }} na natanggap mula sa lumang utang ay kasama sa pisikal na pera sa kaha ngunit hindi bagong benta ng araw na ito.
+      </p>
+    </div>
+
+    <!-- Panel 2: Revenue by Product Category -->
+    <div class="report-panel">
+      <div class="report-panel-header">
+        <div>
+          <h2 class="report-panel-title">Benta Ayon sa Kategorya</h2>
+          <p class="report-panel-subtitle">Top revenue-generating product segments</p>
+        </div>
+        <span class="badge badge-active-outline">Breakdown</span>
+      </div>
+      {% for cat in categories %}
+      <div class="category-item">
+        <div class="category-top-row">
+          <span>{{ cat.name }}</span>
+          <span class="tabular-num">₱{{ cat.amount|floatformat:2 }} <small style="color: var(--color-ink-secondary); font-weight: normal;">({{ cat.percentage }}%)</small></span>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill-orange" style="width: {{ cat.percentage }}%;"></div>
+        </div>
+      </div>
+      {% endfor %}
+      <div style="margin-top: 20px; padding: 12px; background: var(--color-canvas-bg); border-radius: var(--radius-badge); display: flex; justify-content: space-between; font-size: 12px;">
+        <span style="font-weight: 600;">Kabuuang Naitanghal</span>
+        <span class="tabular-num" style="font-weight: 700;">₱{{ kpis.today_sales_total|floatformat:2 }}</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Aging of Accounts Receivable (Utang Aging) -->
+  <section class="report-panel anim-fade-up anim-delay-3">
+    <div class="report-panel-header">
+      <div>
+        <h2 class="report-panel-title">Pagsusuri ng Lumang Utang (Aging Analysis)</h2>
+        <p class="report-panel-subtitle">Mga sukang may bukas na balanse na lampas na sa itinakdang panahon</p>
+      </div>
+      <a href="{% url 'customers:customer_list' %}" class="btn btn-outline" style="font-size: 12px; padding: 6px 12px;">
+        <span>Buksan ang Utang Ledger</span>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+      </a>
+    </div>
+    <div style="overflow-x: auto;">
+      <table class="report-table">
+        <thead>
+          <tr>
+            <th>Pangalan ng Suki</th>
+            <th>Contact</th>
+            <th>Balanse</th>
+            <th>Tagal ng Utang</th>
+            <th>Huling Hulog</th>
+            <th>Katayuan</th>
+            <th style="text-align: right;">Aksyon</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for suki in aging_accounts %}
+          <tr>
+            <td style="font-weight: 600;">{{ suki.customer_name }}</td>
+            <td class="tabular-num" style="color: var(--color-ink-secondary); font-size: 12px;">{{ suki.phone }}</td>
+            <td class="tabular-num" style="font-weight: 700;">₱{{ suki.balance|floatformat:2 }}</td>
+            <td>
+              {% if suki.status == 'critical' %}
+              <span class="badge badge-danger">{{ suki.status_label }}</span>
+              {% elif suki.status == 'overdue' %}
+              <span class="badge badge-overdue-solid">{{ suki.status_label }}</span>
+              {% elif suki.status == 'normal' %}
+              <span class="badge badge-settled">{{ suki.status_label }}</span>
+              {% else %}
+              <span class="badge badge-success">{{ suki.status_label }}</span>
+              {% endif %}
+            </td>
+            <td style="font-size: 12px;">
+              <span>{{ suki.last_payment_date }}</span>
+              <small class="tabular-num" style="display: block; color: var(--color-ink-secondary);">₱{{ suki.last_payment_amount|floatformat:2 }}</small>
+            </td>
+            <td>
+              {% if suki.status == 'critical' %}
+              <span style="font-size: 12px; color: var(--color-status-danger-text); font-weight: 600;">Matagal na</span>
+              {% elif suki.status == 'overdue' %}
+              <span style="font-size: 12px; color: var(--color-primary-orange-active); font-weight: 600;">Kailangan Paalalahanan</span>
+              {% else %}
+              <span style="font-size: 12px; color: var(--color-ink-secondary);">Aktibo</span>
+              {% endif %}
+            </td>
+            <td style="text-align: right;">
+              <button type="button" class="btn btn-outline" style="font-size: 11px; padding: 4px 10px;" onclick="showToast('Drafting SMS reminder for {{ suki.customer_name }}...', 'info')">
+                <span>Mag-paalala</span>
+              </button>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- FIFO Expiry Risk Prevention Section -->
+  <section class="report-panel anim-fade-up anim-delay-3">
+    <div class="report-panel-header">
+      <div>
+        <h2 class="report-panel-title">FIFO Expiry Risk Management</h2>
+        <p class="report-panel-subtitle">Mga panindang dapat unahing ibenta upang maiwasan ang tapon at lugi</p>
+      </div>
+      <div style="text-align: right;">
+        <span style="font-size: 11px; color: var(--color-ink-secondary); display: block;">Kabuuang Puhunan sa Panganib:</span>
+        <strong class="tabular-num" style="font-size: 16px; color: var(--color-primary-orange);">₱{{ total_risk_value|floatformat:2 }}</strong>
+      </div>
+    </div>
+    <div style="overflow-x: auto;">
+      <table class="report-table">
+        <thead>
+          <tr>
+            <th>Paninda at Batch Code</th>
+            <th>Pwesto sa Estante</th>
+            <th>Dami</th>
+            <th>Natitirang Araw</th>
+            <th>Tinatayang Halaga</th>
+            <th style="text-align: right;">Dapat Gawin</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in expiry_risk_items %}
+          <tr>
+            <td>
+              <strong style="display: block;">{{ item.product_name }}</strong>
+              <small class="tabular-num" style="color: var(--color-ink-secondary);">{{ item.batch_code }}</small>
+            </td>
+            <td style="font-size: 12px;">{{ item.shelf_location }}</td>
+            <td class="tabular-num"><strong>{{ item.quantity }}</strong> {{ item.unit }}</td>
+            <td>
+              {% if item.days_remaining <= 3 %}
+              <span class="badge badge-danger">{{ item.days_remaining }} araw na lang</span>
+              {% elif item.days_remaining <= 5 %}
+              <span class="badge badge-overdue-solid">{{ item.days_remaining }} araw na lang</span>
+              {% else %}
+              <span class="badge badge-settled">{{ item.days_remaining }} araw</span>
+              {% endif %}
+            </td>
+            <td class="tabular-num" style="font-weight: 700;">₱{{ item.estimated_value|floatformat:2 }}</td>
+            <td style="text-align: right;">
+              <span class="badge badge-active-outline">{{ item.action_label }}</span>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>
+{% endblock %}
