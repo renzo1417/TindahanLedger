@@ -466,3 +466,155 @@
   accent-color: var(--color-primary-orange);
   cursor: pointer;
 }
+
+/* --------------------------------------------------------------------------
+   6. Low-Stock Row Highlight & Tubo Quick-Calculator Strip
+   -------------------------------------------------------------------------- */
+.table-inventory tbody tr.inventory-row-low td {
+  background-color: #FFFDFB;
+}
+
+.table-inventory tbody tr.inventory-row-low td:first-child {
+  box-shadow: inset 3px 0 0 var(--color-primary-orange);
+}
+
+.tubo-calc-strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  background-color: var(--color-surface-white);
+  border: 1px solid var(--color-border-main);
+  border-radius: var(--radius-card);
+  padding: 14px 18px;
+  box-shadow: var(--shadow-subtle);
+}
+
+.tubo-calc-title-group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 180px;
+}
+
+.tubo-calc-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.7px;
+  text-transform: uppercase;
+  color: var(--color-primary-orange-active);
+}
+
+.tubo-calc-sub {
+  font-size: 12px;
+  color: var(--color-ink-muted);
+}
+
+.tubo-calc-inputs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.tubo-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.tubo-field label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--color-ink-secondary);
+  text-transform: uppercase;
+}
+
+.tubo-input {
+  width: 112px;
+  min-height: 36px;
+  padding: 5px 10px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-ink-primary);
+  background-color: var(--color-canvas-bg);
+  border: 1px solid var(--color-border-main);
+  border-radius: var(--radius-control);
+}
+
+.tubo-input:focus {
+  outline: none;
+  border-color: var(--color-primary-orange);
+  background-color: var(--color-surface-white);
+}
+
+.tubo-calc-outputs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px;
+  padding: 8px 14px;
+  background-color: var(--color-canvas-bg);
+  border: 1px solid var(--color-border-hairline);
+  border-radius: var(--radius-control);
+}
+
+.tubo-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.tubo-stat-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--color-ink-muted);
+  text-transform: uppercase;
+}
+
+.tubo-stat-val {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-ink-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.tubo-stat-val.positive {
+  color: var(--color-status-success-text);
+}
+
+.tubo-stat-val.negative {
+  color: var(--color-status-danger-text);
+}
+
+.tubo-divider {
+  width: 1px;
+  height: 28px;
+  background-color: var(--color-border-main);
+}
+
+/* Print Shelf-Count Checklist Rules */
+@media print {
+  .sidebar-nav,
+  .bottom-nav,
+  .masthead,
+  .header-actions,
+  .inventory-toolbar,
+  .tubo-calc-strip,
+  .btn-restock-action {
+    display: none !important;
+  }
+  .app-main-content {
+    margin-left: 0 !important;
+    padding: 0 !important;
+  }
+  .inventory-table-container {
+    box-shadow: none !important;
+    border-color: #cccccc !important;
+  }
+}

@@ -19,6 +19,10 @@
       <p class="page-subtitle">{{ total_products_count }} active paninda items in store catalog • <strong>{{ low_stock_count }} items need restock</strong></p>
     </div>
     <div class="header-actions">
+      <button type="button" class="btn btn-secondary" onclick="window.print()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+        <span>Print Stock Sheet</span>
+      </button>
       <button type="button" class="btn btn-secondary" onclick="openModal('restock-batch-modal')">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
         <span>Restock Batch</span>
@@ -136,10 +140,57 @@
         >
       </div>
 
+      <select id="inventory-sort-select" class="inventory-select-category" aria-label="Sort inventory">
+        <option value="default">Sort: Default Order</option>
+        <option value="low-stock">Sort: Lowest Stock First</option>
+        <option value="high-margin">Sort: Highest Tubo (%)</option>
+        <option value="low-cost">Sort: Lowest Puhunan</option>
+      </select>
+
       {% if search_query or selected_category != 'all' or selected_status != 'all' %}
       <a href="{% url 'inventory:inventory_list' %}" class="btn btn-secondary btn-sm" style="min-height: 38px;">Reset</a>
       {% endif %}
     </form>
+  </section>
+
+  <!-- Live Tubo / Markup Calculator Strip -->
+  <section class="tubo-calc-strip anim-fade-up anim-delay-3" aria-label="Quick tubo markup calculator">
+    <div class="tubo-calc-title-group">
+      <span class="tubo-calc-eyebrow">Tubo &amp; Presyo Calculator</span>
+      <span class="tubo-calc-sub">Check unit profit before setting shelf tags</span>
+    </div>
+
+    <div class="tubo-calc-inputs">
+      <div class="tubo-field">
+        <label for="calc-puhunan">Puhunan (₱)</label>
+        <input type="number" id="calc-puhunan" class="tubo-input" value="14.50" step="0.25" min="0">
+      </div>
+      <div class="tubo-field">
+        <label for="calc-presyo">Presyo (₱)</label>
+        <input type="number" id="calc-presyo" class="tubo-input" value="18.00" step="0.25" min="0">
+      </div>
+      <div class="tubo-field">
+        <label for="calc-units">Units / Pack</label>
+        <input type="number" id="calc-units" class="tubo-input" value="1" step="1" min="1" style="width: 88px;">
+      </div>
+    </div>
+
+    <div class="tubo-calc-outputs">
+      <div class="tubo-stat">
+        <span class="tubo-stat-label">Tubo / Unit</span>
+        <span id="calc-unit-tubo" class="tubo-stat-val positive">+₱3.50</span>
+      </div>
+      <div class="tubo-divider" aria-hidden="true"></div>
+      <div class="tubo-stat">
+        <span class="tubo-stat-label">Markup %</span>
+        <span id="calc-margin-pct" class="tubo-stat-val">24.1%</span>
+      </div>
+      <div class="tubo-divider" aria-hidden="true"></div>
+      <div class="tubo-stat">
+        <span class="tubo-stat-label">20% Target Presyo</span>
+        <span id="calc-suggested-price" class="tubo-stat-val">₱17.50</span>
+      </div>
+    </div>
   </section>
 
   <!-- Inventory Data Table -->
@@ -157,9 +208,15 @@
             <th style="text-align: right; width: 100px;">Actions</th>
           </tr>
         </thead>
-        <tbody>
+        <tbody id="inventory-table-body">
           {% for product in products %}
-          <tr>
+          <tr
+            class="inventory-row {% if product.stock_status == 'low_stock' %}inventory-row-low{% endif %}"
+            data-index="{{ forloop.counter0 }}"
+            data-stock="{{ product.stock_quantity }}"
+            data-margin="{{ product.profit_margin_pct }}"
+            data-cost="{{ product.cost_price }}"
+          >
             <td class="col-product">
               <span class="product-title">{{ product.name }}</span>
               <div class="product-meta-sub">
@@ -249,4 +306,8 @@ function openRestockForProduct(productId, productName, costPrice) {
   openModal('restock-batch-modal');
 }
 </script>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{% static 'js/inventory/inventory.js' %}"></script>
 {% endblock %}
