@@ -16,7 +16,7 @@
   <section class="profile-hero anim-fade-up anim-delay-1">
     <div class="profile-hero-content">
       <div class="profile-avatar-wrapper">
-        <div class="profile-avatar-large">{{ profile.avatar_initial }}</div>
+        <div id="hero-avatar-initial" class="profile-avatar-large">{{ profile.avatar_initial }}</div>
         <button type="button" class="profile-avatar-edit-badge" title="Change Avatar" onclick="showToast('Avatar upload available in next version.', 'info')">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
         </button>
@@ -24,16 +24,16 @@
 
       <div class="profile-identity">
         <div class="profile-title-row">
-          <h1 class="profile-store-title">{{ profile.store_name }}</h1>
+          <h1 id="hero-store-title" class="profile-store-title">{{ profile.store_name }}</h1>
           <span class="badge badge-success" style="gap: 4px;">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
             <span>Verified Sari-Sari Store</span>
           </span>
         </div>
-        <p class="profile-owner-sub">Owner: <strong>{{ profile.owner_name }}</strong> • {{ profile.member_since }}</p>
+        <p class="profile-owner-sub">Owner: <strong id="hero-owner-name">{{ profile.owner_name }}</strong> • {{ profile.member_since }}</p>
         <p class="profile-address-sub">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-          <span>{{ profile.address }}</span>
+          <span id="hero-address-text">{{ profile.address }}</span>
         </p>
       </div>
     </div>
@@ -68,58 +68,80 @@
           <h2 class="section-title">Store Business Information</h2>
           <p style="font-size: 12px; color: var(--color-ink-muted);">Public store identity and official trade details</p>
         </div>
-        <button type="button" class="btn btn-secondary btn-sm" onclick="showToast('Profile editing enabled. Make your adjustments below.', 'info')">
+        <button type="button" id="toggle-edit-btn" class="btn btn-secondary btn-sm" onclick="toggleProfileEdit()">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
-          <span>Edit Details</span>
+          <span id="toggle-edit-label">Edit Details</span>
         </button>
       </div>
 
-      <form class="profile-form" onsubmit="event.preventDefault(); showToast('Store profile changes saved successfully!', 'check');">
+      <form id="profile-details-form" class="profile-form is-locked" onsubmit="event.preventDefault(); saveProfileForm();">
         {% csrf_token %}
         <div class="form-grid-2">
           <div class="form-group">
-            <label class="form-label">Store Business Name <span class="text-required">*</span></label>
-            <input type="text" class="form-control" value="{{ profile.store_name }}" required>
+            <label class="form-label" for="id_profile_store_name">Store Business Name <span class="text-required">*</span></label>
+            <input type="text" id="id_profile_store_name" class="form-control" value="{{ profile.store_name }}" disabled required>
           </div>
           <div class="form-group">
-            <label class="form-label">Store Owner Full Name <span class="text-required">*</span></label>
-            <input type="text" class="form-control" value="{{ profile.owner_name }}" required>
+            <label class="form-label" for="id_profile_owner_name">Store Owner Full Name <span class="text-required">*</span></label>
+            <input type="text" id="id_profile_owner_name" class="form-control" value="{{ profile.owner_name }}" disabled required>
           </div>
         </div>
 
         <div class="form-group">
-          <label class="form-label">Business Classification</label>
-          <input type="text" class="form-control" value="{{ profile.business_category }}" readonly>
+          <label class="form-label" for="id_profile_category">Business Classification</label>
+          <input type="text" id="id_profile_category" class="form-control" value="{{ profile.business_category }}" readonly>
         </div>
 
         <div class="form-group">
-          <label class="form-label">Street Address & Barangay <span class="text-required">*</span></label>
-          <input type="text" class="form-control" value="{{ profile.address }}" required>
+          <label class="form-label" for="id_profile_address">Street Address & Barangay <span class="text-required">*</span></label>
+          <input type="text" id="id_profile_address" class="form-control" value="{{ profile.address }}" disabled required>
         </div>
 
         <div class="form-grid-2">
           <div class="form-group">
-            <label class="form-label">City / Municipality</label>
-            <input type="text" class="form-control" value="{{ profile.city }}">
+            <label class="form-label" for="id_profile_city">City / Municipality</label>
+            <input type="text" id="id_profile_city" class="form-control" value="{{ profile.city }}" disabled>
           </div>
           <div class="form-group">
-            <label class="form-label">Operating Schedule</label>
-            <input type="text" class="form-control" value="{{ profile.operating_hours }}">
+            <label class="form-label" for="id_profile_hours">Operating Schedule</label>
+            <input type="text" id="id_profile_hours" class="form-control" value="{{ profile.operating_hours }}" disabled>
           </div>
         </div>
 
         <div class="form-group">
-          <label class="form-label">Active Ledger Identification</label>
-          <input type="text" class="form-control font-mono" value="{{ profile.ledger_volume }}" readonly>
+          <label class="form-label" for="id_profile_ledger_vol">Active Ledger Identification</label>
+          <input type="text" id="id_profile_ledger_vol" class="form-control font-mono" value="{{ profile.ledger_volume }}" readonly>
         </div>
 
         <div class="profile-form-footer">
-          <button type="submit" class="btn btn-primary">
+          <button type="submit" id="save-profile-btn" class="btn btn-primary" disabled>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
             <span>Save Profile Updates</span>
           </button>
         </div>
       </form>
+
+      <!-- Live Store Receipt Header Preview -->
+      <div class="receipt-preview-card" aria-label="Live store receipt header preview">
+        <div class="receipt-preview-top">
+          <span class="receipt-preview-tag">Customer Receipt Header Preview</span>
+          <button type="button" class="btn btn-secondary btn-sm" style="font-size: 11px; padding: 4px 10px;" onclick="window.print()">Print Counter Slip</button>
+        </div>
+        <div class="receipt-paper-box">
+          <h3 id="receipt-store-name" class="receipt-paper-store">{{ profile.store_name }}</h3>
+          <div id="receipt-address" class="receipt-paper-line">{{ profile.address }}</div>
+          <div id="receipt-hours" class="receipt-paper-line">Bukas: {{ profile.operating_hours }}</div>
+          <div class="receipt-paper-divider"></div>
+          <div class="receipt-paper-row">
+            <span>Nag-asikaso: <strong id="receipt-owner">{{ profile.owner_name }}</strong></span>
+            <span>{{ profile.ledger_volume }}</span>
+          </div>
+          <div class="receipt-paper-row">
+            <span>GCash Bayad: {{ profile.gcash_number }}</span>
+            <span>Tel: {{ profile.phone_number }}</span>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Right Column: Contact, Payment & Device Credentials -->
@@ -169,12 +191,28 @@
         </div>
 
         <div class="gcash-card-box">
-          <div style="display: flex; align-items: center; justify-content: space-between;">
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px;">
             <div>
               <span style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--color-primary-orange);">Quick Pay QR</span>
-              <p style="font-size: 12px; color: var(--color-ink-secondary); margin-top: 2px;">GCash QR payments ready for customers</p>
+              <p style="font-size: 12px; color: var(--color-ink-secondary); margin-top: 2px;">GCash QR counter slip for suki payments</p>
             </div>
-            <button type="button" class="btn btn-secondary btn-sm" onclick="showToast('Displaying full-screen QR code...', 'info')">Show QR</button>
+            <button type="button" id="toggle-qr-btn" class="btn btn-secondary btn-sm" onclick="toggleGcashSlip()">Hide Slip</button>
+          </div>
+
+          <div id="gcash-slip-panel" class="gcash-slip-panel is-open" aria-live="polite">
+            <div class="gcash-qr-frame" aria-hidden="true">
+              <svg width="58" height="58" viewBox="0 0 24 24" fill="none" stroke="#121212" stroke-width="1.6" stroke-linecap="square">
+                <rect x="3" y="3" width="6" height="6"></rect>
+                <rect x="15" y="3" width="6" height="6"></rect>
+                <rect x="3" y="15" width="6" height="6"></rect>
+                <path d="M15 15h2v2h-2zM19 15h2v2h-2zM15 19h2v2h-2zM19 19h2v2h-2zM11 3v6M11 13v8M3 11h18"></path>
+              </svg>
+            </div>
+            <div class="gcash-slip-meta">
+              <strong id="slip-store-name">{{ profile.store_name }}</strong>
+              <span>GCash: {{ profile.gcash_number }}</span>
+              <small>Verified Counter Slip • <span id="slip-owner-name">{{ profile.owner_name }}</span></small>
+            </div>
           </div>
         </div>
       </div>
