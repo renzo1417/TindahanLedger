@@ -115,4 +115,136 @@ input:checked + .slider:before {
   .setting-toggle-row .switch {
     align-self: flex-end;
   }
+  .settings-jump-bar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+/* Section Anchor Scroll Spacing */
+.settings-section-anchor {
+  scroll-margin-top: 92px;
+}
+
+/* Section Quick-Jump & Dirty-State Bar */
+.settings-jump-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+  background-color: var(--color-surface-white, #FFFFFF);
+  border: 1px solid var(--color-border-main, rgba(18, 18, 18, 0.11));
+  border-radius: var(--radius-card, 11px);
+  box-shadow: var(--shadow-subtle, 0 1px 2px rgba(0, 0, 0, 0.04));
+}
+
+.settings-jump-links {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.settings-jump-link {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-ink-secondary, rgba(18, 18, 18, 0.75));
+  background-color: var(--color-canvas-bg, #F9F8F6);
+  border: 1px solid var(--color-border-hairline, rgba(18, 18, 18, 0.06));
+  border-radius: var(--radius-control, 7px);
+  text-decoration: none;
+  transition: background-color var(--duration-fast, 140ms) ease,
+              border-color var(--duration-fast, 140ms) ease,
+              color var(--duration-fast, 140ms) ease;
+}
+
+.settings-jump-link:hover,
+.settings-jump-link.active {
+  background-color: var(--color-ink-primary, #121212);
+  border-color: var(--color-ink-primary, #121212);
+  color: #FFFFFF;
+}
+
+.settings-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 5px 10px;
+  border-radius: var(--radius-badge, 5px);
+  background-color: #ECFDF5;
+  color: #065F46;
+  border: 1px solid #A7F3D0;
+  white-space: nowrap;
+}
+
+.settings-status-pill.is-dirty {
+  background-color: var(--color-orange-subtle-bg, rgba(255, 106, 26, 0.08));
+  color: var(--color-primary-orange-active, #CA4200);
+  border-color: var(--color-orange-border, rgba(255, 106, 26, 0.28));
+}
+
+.settings-status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: currentColor;
+}
+
+/* Live SMS Paalala Preview Card */
+.sms-preview-card {
+  margin-top: 6px;
+  padding: 14px;
+  background-color: var(--color-canvas-bg, #F9F8F6);
+  border: 1px dashed var(--color-border-hover, rgba(18, 18, 18, 0.25));
+  border-radius: var(--radius-control, 7px);
+  transition: opacity var(--duration-fast, 140ms) ease;
+}
+
+.sms-preview-card.is-disabled {
+  opacity: 0.58;
+}
+
+.sms-preview-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.sms-preview-label {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--color-ink-secondary, rgba(18, 18, 18, 0.75));
+}
+
+.sms-preview-body {
+  font-size: 12.5px;
+  line-height: 1.58;
+  color: var(--color-ink-primary, #121212);
+  background-color: var(--color-surface-white, #FFFFFF);
+  border: 1px solid var(--color-border-hairline, rgba(18, 18, 18, 0.06));
+  border-radius: var(--radius-badge, 5px);
+  padding: 10px 12px;
+  margin: 0;
+}
+
+.sms-preview-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 8px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--color-ink-muted, rgba(18, 18, 18, 0.55));
 }

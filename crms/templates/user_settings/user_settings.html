@@ -29,12 +29,27 @@
     </div>
   </section>
 
+  <!-- Quick-Jump Section Navigation & Unsaved Status -->
+  <nav class="settings-jump-bar anim-fade-up anim-delay-1" aria-label="Settings sections">
+    <div class="settings-jump-links">
+      <a href="#sec-identity" class="settings-jump-link active">Store Identity</a>
+      <a href="#sec-credit" class="settings-jump-link">Utang &amp; Credit Rules</a>
+      <a href="#sec-fifo" class="settings-jump-link">FIFO &amp; Expiry</a>
+      <a href="#sec-notifications" class="settings-jump-link">Paalala &amp; SMS Preview</a>
+      <a href="#sec-backup" class="settings-jump-link">Backup &amp; Export</a>
+    </div>
+    <span id="settings-dirty-pill" class="settings-status-pill" role="status" aria-live="polite">
+      <span class="settings-status-dot" aria-hidden="true"></span>
+      <span id="settings-dirty-text">All rules synced</span>
+    </span>
+  </nav>
+
   <!-- Master Settings Form -->
   <form id="settings-form" class="settings-form-layout" onsubmit="event.preventDefault(); saveSettings();">
     {% csrf_token %}
 
     <!-- 1. Store Identity & Profile Card -->
-    <div class="card-white p-5 anim-fade-up anim-delay-1">
+    <div id="sec-identity" class="card-white p-5 anim-fade-up anim-delay-1 settings-section-anchor">
       <div class="card-header-clean">
         <div style="display: flex; align-items: center; gap: 10px;">
           <div class="settings-icon-pill">
@@ -84,7 +99,7 @@
     <!-- 2-Column Rules Grid -->
     <div class="grid-dual-column">
       <!-- 2. Utang Ledger & Credit Rules -->
-      <div class="card-white p-5 anim-fade-up anim-delay-2">
+      <div id="sec-credit" class="card-white p-5 anim-fade-up anim-delay-2 settings-section-anchor">
         <div class="card-header-clean">
           <div style="display: flex; align-items: center; gap: 10px;">
             <div class="settings-icon-pill">
@@ -129,7 +144,7 @@
       </div>
 
       <!-- 3. Inventory & Expiry Controls -->
-      <div class="card-white p-5 anim-fade-up anim-delay-3">
+      <div id="sec-fifo" class="card-white p-5 anim-fade-up anim-delay-3 settings-section-anchor">
         <div class="card-header-clean">
           <div style="display: flex; align-items: center; gap: 10px;">
             <div class="settings-icon-pill">
@@ -175,7 +190,7 @@
     <!-- 4. Notifications & Sound + 5. Data Backup -->
     <div class="grid-dual-column">
       <!-- Notifications & Audio -->
-      <div class="card-white p-5 anim-fade-up anim-delay-4">
+      <div id="sec-notifications" class="card-white p-5 anim-fade-up anim-delay-4 settings-section-anchor">
         <div class="card-header-clean">
           <div style="display: flex; align-items: center; gap: 10px;">
             <div class="settings-icon-pill">
@@ -206,7 +221,7 @@
               <p class="setting-toggle-sub">Generate one-tap Tagalog SMS reminders when utang passes due date.</p>
             </div>
             <label class="switch">
-              <input type="checkbox" name="auto_sms_reminders" {% if settings.auto_sms_reminders %}checked{% endif %}>
+              <input type="checkbox" id="id_auto_sms_reminders" name="auto_sms_reminders" {% if settings.auto_sms_reminders %}checked{% endif %}>
               <span class="slider"></span>
             </label>
           </div>
@@ -221,11 +236,24 @@
               <span class="slider"></span>
             </label>
           </div>
+
+          <!-- Live Singilan Paalala SMS Draft Preview -->
+          <div id="sms-preview-card" class="sms-preview-card">
+            <div class="sms-preview-header">
+              <span class="sms-preview-label">Live SMS Paalala Preview (Tagalog)</span>
+              <button type="button" class="btn btn-secondary btn-sm" style="font-size: 11px; padding: 4px 10px;" onclick="copySmsPreview()">Copy Draft</button>
+            </div>
+            <p id="sms-preview-text" class="sms-preview-body">Magandang araw po! Paalala mula sa {{ settings.store_name }}: may nakatalang balanse sa inyong utang matapos ang {{ settings.reminder_threshold_days }} araw na paalala window. Maaaring mag-abot sa tindahan o mag-GCash sa {{ settings.gcash_number }}. Salamat po.</p>
+            <div class="sms-preview-meta">
+              <span id="sms-preview-state">Status: Auto-draft enabled</span>
+              <span id="sms-preview-chars">0 chars</span>
+            </div>
+          </div>
         </div>
       </div>
 
       <!-- Data Safety, Backup & Security -->
-      <div class="card-white p-5 anim-fade-up anim-delay-5">
+      <div id="sec-backup" class="card-white p-5 anim-fade-up anim-delay-5 settings-section-anchor">
         <div class="card-header-clean">
           <div style="display: flex; align-items: center; gap: 10px;">
             <div class="settings-icon-pill">
