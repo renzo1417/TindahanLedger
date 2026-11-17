@@ -7,226 +7,590 @@
   <meta name="theme-color" content="#F9F8F6">
   <link rel="icon" href="{% static 'images/landing/favicon.svg' %}" type="image/svg+xml">
   <link rel="preload" href="{% static 'fonts/landing/jakarta-latin.woff2' %}" as="font" type="font/woff2" crossorigin>
-  <title>TindaHan Ledger | Bawat galaw. Malinaw.</title>
-  <meta name="description" content="Utang, bayad, at stock sa isang talaan para sa araw-araw mong tindahan. Subukan ang sample ledger at ayusin ang stock ayon sa expiry.">
+  <title>TindaHan Ledger | Tala ang utang, ayusin ang stock, malinaw.</title>
+  <meta name="description" content="Utang, bayad, at stock sa isang talaan para sa araw-araw mong tindahan.">
   <link rel="stylesheet" href="{% static 'css/style.css' %}">
-  <link rel="stylesheet" href="{% static 'css/landing/landing.css' %}?v=lively-1">
-  <link rel="stylesheet" href="{% static 'vendor/lenis/lenis.css' %}">
-  <script src="{% static 'vendor/gsap/gsap.min.js' %}" defer></script>
-  <script src="{% static 'vendor/gsap/ScrollTrigger.min.js' %}" defer></script>
-  <script src="{% static 'vendor/gsap/SplitText.min.js' %}" defer></script>
-  <script src="{% static 'vendor/gsap/Flip.min.js' %}" defer></script>
-  <script src="{% static 'vendor/gsap/DrawSVGPlugin.min.js' %}" defer></script>
-  <script src="{% static 'vendor/gsap/CustomEase.min.js' %}" defer></script>
-  <script src="{% static 'vendor/lenis/lenis.min.js' %}" defer></script>
-  <script src="{% static 'js/landing/landing.js' %}?v=lively-1" defer></script>
+  <link rel="stylesheet" href="{% static 'css/landing/landing.css' %}?v=recreate-3">
+  <script src="{% static 'js/landing/landing.js' %}?v=recreate-3" defer></script>
 </head>
 <body class="landing-body">
   <a class="lp-skip" href="#main-content">Skip to main content</a>
-  <header class="lp-header"><div class="lp-container lp-header-inner">
-    <a class="lp-brand" href="{% url 'landing:landing' %}" aria-label="TindaHan Ledger home"><span class="lp-brand-mark" aria-hidden="true">t.</span><span>TindaHan<span class="lp-brand-ledger">Ledger</span></span></a>
-    <nav class="lp-nav" aria-label="Sections"><a href="#ledger-demo">Ang ledger</a><a href="#inventory-story">Ang stock</a><a href="#daily-overview">Ang araw</a><a href="#mga-tampok">Mga tampok</a><a href="#faq">Mga tanong</a></nav>
-    <div class="lp-account"><a class="lp-signin" href="{% url 'login:login' %}">Sign in</a><a class="lp-button lp-button-small" href="{% url 'register:register' %}" data-magnetic><span>Create account <span aria-hidden="true">↗</span></span></a></div>
-  </div></header>
+
+  <!-- Floating Dark Pill Header -->
+  <div class="lp-header-wrap">
+    <header class="lp-header-pill">
+      <a class="lp-brand" href="{% url 'landing:landing' %}" aria-label="TindaHan Ledger home">
+        <span class="lp-brand-mark" aria-hidden="true">t.</span>
+        <span>
+          TindaHan
+          <span class="lp-brand-sub">Ledger</span>
+        </span>
+      </a>
+      <nav class="lp-nav" aria-label="Sections">
+        <a href="#ledger-demo">Ang ledger</a>
+        <a href="#inventory-story">Ang stock</a>
+        <a href="#daily-overview">Ang araw mo</a>
+        <a href="#faq">Mga tanong</a>
+      </nav>
+      <div class="lp-account">
+        <a class="lp-signin" href="{% url 'login:login' %}">Sign in</a>
+        <a class="lp-pill-cta" href="{% url 'register:register' %}">
+          <span>Create account</span>
+          <span class="lp-pill-cta-icon" aria-hidden="true">↗</span>
+        </a>
+      </div>
+    </header>
+  </div>
+
   <main id="main-content" tabindex="-1">
-    <section class="lp-hero lp-container" aria-labelledby="hero-title">
-      <div class="lp-hero-copy">
-        <p class="lp-eyebrow lp-hero-enter">PARA SA ARAW-ARAW NA TINDAHAN</p>
-        <h1 id="hero-title" data-hero-heading>Bawat galaw. <br><span class="lp-orange-word">Malinaw.</span></h1>
-        <p class="lp-hero-description lp-hero-enter">Utang, bayad, at stock sa isang talaan para sa araw-araw mong tindahan.</p>
-        <div class="lp-hero-actions lp-hero-enter"><a class="lp-button" href="{% url 'register:register' %}" data-magnetic><span>Create account <span aria-hidden="true">↗</span></span></a><a class="lp-text-link" href="#ledger-demo">Try the ledger <span aria-hidden="true">↓</span></a></div>
-        <div class="lp-hero-stats lp-hero-enter">
-          <div class="lp-stat-pill">
-            <span class="lp-stat-code">[01]</span>
+    <!-- 1. Editorial Hero with Floating Micro-Cards & App Preview Shell -->
+    <section class="lp-hero-band" aria-labelledby="hero-title">
+      <div class="lp-container lp-hero-inner">
+        <h1 id="hero-title" class="lp-hero-heading">
+          Tala ang <span class="lp-inline-badge lp-inline-peso" aria-hidden="true"><span>₱</span></span> utang,<br>
+          ayusin <span class="lp-inline-badge lp-inline-arrow" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></span> ang stock, at<br>
+          bawat galaw <span class="lp-inline-badge lp-inline-check" aria-hidden="true"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></span> <em class="lp-hero-italic">malinaw.</em>
+        </h1>
+        <p class="lp-hero-subtitle">Utang, bayad, at stock sa isang talaan para sa araw-araw mong tindahan.</p>
+
+        <div class="lp-hero-actions">
+          <a class="lp-btn-dark-pill" href="{% url 'register:register' %}">
+            <span>Create account</span>
+            <span class="lp-btn-circle" aria-hidden="true">↗</span>
+          </a>
+          <a class="lp-btn-outline-pill" href="#ledger-demo">
+            <span>Try the ledger</span>
+            <span aria-hidden="true">↓</span>
+          </a>
+        </div>
+
+        <div class="lp-hero-stage">
+          <!-- Subtle Dashed Gutter Connectors -->
+          <svg class="lp-hero-connectors" viewBox="0 0 1100 360" fill="none" aria-hidden="true">
+            <path d="M168 58 H206 V86" stroke="rgba(18,18,18,0.16)" stroke-width="1.25" stroke-dasharray="4 4"/>
+            <path d="M168 292 H206 V266" stroke="rgba(255,106,26,0.32)" stroke-width="1.25" stroke-dasharray="4 4"/>
+            <path d="M932 58 H894 V86" stroke="rgba(16,185,129,0.35)" stroke-width="1.25" stroke-dasharray="4 4"/>
+            <path d="M932 292 H894 V266" stroke="rgba(18,18,18,0.22)" stroke-width="1.25" stroke-dasharray="4 4"/>
+          </svg>
+
+          <!-- 4 Floating Micro-Cards (cleanly placed in dedicated side gutters) -->
+          <div class="lp-float-card lp-fc-tl" aria-hidden="true">
+            <div class="lp-float-tag"><span>SAMPLE PAUTANG</span></div>
+            <strong>₱350.00</strong>
+            <small>Aling Rosa · Bigas at sardinas</small>
+          </div>
+
+          <div class="lp-float-card lp-fc-bl" aria-hidden="true">
+            <img src="{% static 'images/landing/packet.svg' %}" width="30" height="38" alt="">
             <div>
-              <strong>Talaan ng Suki</strong>
-              <span>Bawas agad ang hulog sa utang</span>
+              <div class="lp-float-tag" style="color: var(--color-primary-orange-active);"><span>UNAHING IBENTA</span></div>
+              <strong style="font-size: 13.5px;">3 araw na lang</strong>
+              <small>Pancit Canton · Estante A-1</small>
             </div>
           </div>
-          <div class="lp-stat-pill">
-            <span class="lp-stat-code">[02]</span>
-            <div>
-              <strong>FIFO Expiry Sort</strong>
-              <span>Unahing ibenta ang malapit mag-expire</span>
-            </div>
+
+          <div class="lp-float-card lp-fc-tr" aria-hidden="true">
+            <div class="lp-float-tag"><span>BAYAD RECEIVED</span><span>✓</span></div>
+            <strong>+₱150.00</strong>
+            <small>Aling Rosa · bawas sa utang</small>
           </div>
-          <div class="lp-stat-pill">
-            <span class="lp-stat-code">[03]</span>
-            <div>
-              <strong>Balanse ng Kaha</strong>
-              <span>Hiwalay ang benta sa bayad sa utang</span>
+
+          <div class="lp-float-card lp-fc-br" aria-hidden="true">
+            <div class="lp-float-tag"><span>KABUUANG BENTA</span></div>
+            <strong>₱470.00</strong>
+            <small style="color: rgba(255,255,255,0.68);">Walk-in + Suki pautang</small>
+          </div>
+
+          <!-- Centered Interactive App Preview Window -->
+          <div class="lp-hero-app-window" aria-label="Sample Daily Store Overview preview">
+            <aside class="lp-haw-sidebar" aria-hidden="true">
+              <div class="lp-haw-brand">
+                <span class="lp-haw-avatar">A</span>
+                <div>
+                  <div style="font-size: 11px; line-height: 1.2;">Aling Nena</div>
+                  <div style="font-size: 9px; color: var(--color-ink-muted); font-weight: 500;">Sari-Sari Store</div>
+                </div>
+              </div>
+              <div class="lp-haw-nav-item active">Dashboard</div>
+              <div class="lp-haw-nav-item">Utang Ledger</div>
+              <div class="lp-haw-nav-item">Inventory (FIFO)</div>
+              <div class="lp-haw-nav-item">Reports</div>
+              <div class="lp-haw-nav-item">Store Settings</div>
+            </aside>
+
+            <div class="lp-haw-main">
+              <div class="lp-haw-top">
+                <div>
+                  <h3>Daily Store Overview</h3>
+                  <small>TindaHan Ledger • {{ today_display }}</small>
+                </div>
+                <span class="lp-haw-pill">+ Log Sale</span>
+              </div>
+
+              <div class="lp-haw-kpis">
+                <div class="lp-haw-kpi">
+                  <span>Today's Sales</span>
+                  <strong>₱3,847.50</strong>
+                </div>
+                <div class="lp-haw-kpi" style="border-color: rgba(255,106,26,0.35);">
+                  <span>Total Utang</span>
+                  <strong style="color: var(--color-primary-orange-active);">₱12,450.00</strong>
+                </div>
+                <div class="lp-haw-kpi">
+                  <span>Low Stock</span>
+                  <strong>7 items</strong>
+                </div>
+              </div>
+
+              <div class="lp-haw-split">
+                <div class="lp-haw-panel">
+                  <div class="lp-haw-panel-title">
+                    <span>Expiring Soon</span>
+                    <span style="color: var(--color-primary-orange-active); font-family: var(--font-mono); font-size: 9px;">FIFO</span>
+                  </div>
+                  <div class="lp-haw-row">
+                    <div>
+                      <strong>Argentina Corned Beef</strong>
+                      <small>BT-2026-0041 · Shelf A-3</small>
+                    </div>
+                    <span style="font-family: var(--font-mono); font-weight: 700; color: var(--color-primary-orange-active);">3d left</span>
+                  </div>
+                  <div class="lp-haw-row">
+                    <div>
+                      <strong>Lucky Me Pancit Canton</strong>
+                      <small>BT-2026-0055 · Shelf A-1</small>
+                    </div>
+                    <span style="font-family: var(--font-mono); font-weight: 700;">7d left</span>
+                  </div>
+                </div>
+
+                <div class="lp-haw-panel">
+                  <div class="lp-haw-panel-title">
+                    <span>Overdue Utang</span>
+                    <span style="font-family: var(--font-mono); font-size: 9px; color: var(--color-ink-muted);">4 SUKI</span>
+                  </div>
+                  <div class="lp-haw-row">
+                    <div>
+                      <strong>Maria Santos</strong>
+                      <small>12 days overdue</small>
+                    </div>
+                    <strong style="font-family: var(--font-mono);">₱2,350.00</strong>
+                  </div>
+                  <div class="lp-haw-row">
+                    <div>
+                      <strong>Pedro Reyes</strong>
+                      <small>8 days overdue</small>
+                    </div>
+                    <strong style="font-family: var(--font-mono);">₱1,800.00</strong>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </div>
-      <figure class="lp-product-preview">
-        <div class="lp-preview-window">
-          <div class="lp-window-bar"><span class="lp-window-title">Ang tindahan, sa isang tingin.</span><span class="lp-window-label">SAMPLE OVERVIEW</span></div>
-          <div class="lp-preview-image-wrap"><img src="{% static 'images/landing/overview.webp' %}" width="1180" height="860" alt="Sample daily overview ng TindaHan Ledger: benta, utang, stock, at mga batch na malapit mag-expire." fetchpriority="high"></div>
-          <figcaption class="lp-preview-caption"><span>Isang lugar para sa bawat tala.</span><a href="#daily-overview" aria-label="Tingnan ang sample daily overview">Tingnan <span aria-hidden="true">↗</span></a></figcaption>
-        </div>
-        <div class="lp-hero-receipt" aria-hidden="true"><span>SAMPLE BAYAD <span>✓ Naitala</span></span><strong>₱150.00</strong><small>Aling Rosa · bawas sa utang</small></div>
-        <div class="lp-hero-expiry" aria-hidden="true"><span class="lp-expiry-art"><img src="{% static 'images/landing/packet.svg' %}" width="44" height="54" alt=""></span><div><span>UNAHING IBENTA</span><strong>3 araw bago mag-expire</strong><small>Sample batch / Pancit canton</small></div></div>
-      </figure>
     </section>
-    <section class="lp-ledger-section lp-container" id="ledger-demo" aria-labelledby="ledger-title"><div class="lp-ledger-pin">
-      <div class="lp-ledger-copy">
-        <h2 id="ledger-title" data-reveal-heading>Bawat bayad, <br>bawas sa utang.</h2>
-        <p class="lp-section-description">Mula sa unang pinamili hanggang sa huling bayad. Kita ang buong kuwento ng bawat suki.</p>
-        <div class="lp-stage-controls" hidden role="group" aria-label="Ledger stages">
-          <button type="button" data-stage="utang" aria-pressed="false"><span>Utang</span><span>May tala ang bawat pinamili.</span><span class="lp-step-arrow" aria-hidden="true">↗</span></button>
-          <button type="button" data-stage="bayad" aria-pressed="false"><span>Bayad</span><span>Bawas agad sa natitira.</span><span class="lp-step-arrow" aria-hidden="true">↗</span></button>
-          <button type="button" data-stage="balance" aria-pressed="true"><span>Balanse</span><span>Malinaw ang dapat pang bayaran.</span><span class="lp-step-arrow" aria-hidden="true">↗</span></button>
-        </div>
-        <p class="lp-demo-mode" id="demo-mode">Sample ledger · Demo only</p>
+
+    <!-- 2. Split Interactive Ledger Window -->
+    <section class="lp-section lp-container" id="ledger-demo" aria-labelledby="ledger-title">
+      <div class="lp-section-head">
+        <h2 id="ledger-title">Bawat bayad ng suki,<br>bawas agad sa utang</h2>
+        <p>Mula sa unang pinamili hanggang sa huling bayad. Makikita agad ang tamang natitirang utang ng bawat suki.</p>
       </div>
-      <div class="lp-ledger-scene">
-        <article class="lp-ledger" aria-label="Sample ledger ni Aling Rosa" data-ledger-stage="balance">
-          <div class="lp-ledger-top"><div><span class="lp-ledger-label">TALAAN NG SUKI</span><h3>Aling Rosa</h3></div><span class="lp-ledger-avatar" aria-hidden="true">R</span></div>
-          <div class="lp-ledger-columns" aria-hidden="true"><span>Mga pinamili</span><span>Halaga</span></div>
-          <div class="lp-ledger-row lp-purchase"><div><strong>Bigas</strong><span>5 kg Dinorado</span></div><span>₱250.00</span></div>
-          <div class="lp-ledger-row lp-purchase"><div><strong>Mga pinamili</strong><span>Sardinas at sabon</span></div><span>₱100.00</span></div>
-          <div class="lp-extra-rows"></div>
-          <div class="lp-payment-slot"><div class="lp-ledger-row lp-payment" id="demo-payment"><div><strong>Bayad ni Rosa</strong><span>Natanggap ngayong araw</span></div><span>−₱150.00</span></div><p class="lp-payment-empty" id="demo-payment-empty" hidden>Wala pang naitalang bayad.<span>Buong utang pa ang natitira.</span></p></div>
-          <div class="lp-balance-frame"><span class="lp-balance-rule" aria-hidden="true"></span><div class="lp-balance"><span>Natitirang utang</span><strong id="demo-balance">₱200.00</strong><p id="demo-equation">₱350.00 − ₱150.00 = ₱200.00</p></div><div class="lp-receipt" aria-hidden="true"><span>BAYAD RECEIVED</span><strong>₱150.00</strong><span>Aling Rosa <span class="lp-receipt-check">✓ Recorded</span></span></div></div>
-          <div class="lp-ledger-add" hidden role="group" aria-label="Dagdag na pinamili"><span class="lp-add-label">Dagdag utang</span>
-            <button type="button" data-item="itlog" data-name="Itlog" data-detail="6 piraso" data-amount="48" aria-pressed="false"><span aria-hidden="true">+</span> Itlog <b>₱48</b></button>
-            <button type="button" data-item="kape" data-name="Kape" data-detail="3-in-1, 4 sachet" data-amount="36" aria-pressed="false"><span aria-hidden="true">+</span> Kape <b>₱36</b></button>
-            <button type="button" data-item="mantika" data-name="Mantika" data-detail="1 lapad" data-amount="62" aria-pressed="false"><span aria-hidden="true">+</span> Mantika <b>₱62</b></button>
+
+      <div class="lp-ledger-window" aria-label="Interactive Utang Ledger Demo">
+        <!-- Left Customer Directory -->
+        <aside class="lp-lw-sidebar">
+          <div class="lp-lw-search">
+            <input type="text" id="lp-suki-search" class="lp-lw-search-input" placeholder="Hanapin si suki..." aria-label="Search customer">
           </div>
-          <div class="lp-ledger-actions" hidden><button class="lp-payment-button" id="record-payment" type="button">Record sample ₱150 payment <span aria-hidden="true">↗</span></button><button id="reset-ledger" class="lp-reset" type="button">Reset</button></div>
-          <div class="lp-ledger-bottom"><span>Sample ledger · Demo only</span><span class="lp-ledger-seal" aria-hidden="true">t.</span></div>
-        </article>
-        <p class="lp-scene-note" id="demo-caption">Bawat bayad, malinaw ang natitira.</p>
-        <span id="demo-status" class="lp-sr" role="status" aria-live="polite" aria-atomic="true"></span>
-      </div>
-    </div></section>
-    <section class="lp-stock-section lp-container" id="inventory-story" aria-labelledby="stock-title">
-      <div class="lp-stock-stage">
-        <div class="lp-stock-backdrop" aria-hidden="true"></div>
-        <div class="lp-stock-intro"><h2 id="stock-title" data-reveal-heading>Alam ang <br>dapat unahin.</h2><p class="lp-section-description">Mas maagang expiry, mas maagang ibenta.<br>Para mas kaunti ang nasasayang na stock.</p></div>
-        <div class="lp-stock-toolbar"><div><h3>Sa estante mo</h3><p>Sample batches. Totoong pag-iingat.</p></div><div class="lp-stock-controls" hidden role="group" aria-label="Stock order"><button type="button" data-stock-order="arrival" aria-pressed="false">Arrival order</button><button type="button" data-stock-order="expiry" aria-pressed="true">Expiry priority</button></div></div>
-        <div class="lp-stock-time" hidden>
-          <label class="lp-time-label" for="stock-days"><span>Paandarin ang araw</span><output id="stock-days-output" for="stock-days">Ngayon</output></label>
-          <div class="lp-time-track"><input type="range" id="stock-days" min="0" max="7" step="1" value="0" aria-describedby="stock-time-hint"><div class="lp-time-ticks" aria-hidden="true"><span>Ngayon</span><span>+7 araw</span></div></div>
-          <p id="stock-time-hint" class="lp-sr">Ilipat para makita kung aling batch ang unang mag-e-expire at ihihiwalay.</p>
-        </div>
-        <div class="lp-stock-table-heading" aria-hidden="true"><span>Paninda / batch</span><span>Stock</span><span>Expiry</span><span>Dapat gawin</span></div>
-        <div class="lp-stock-list" role="list" aria-label="Sellable sample batches">
-          {% for batch in inventory_batches %}{% if batch.is_sellable %}
-          <article class="lp-batch {% if batch.is_highlighted %}lp-batch-priority{% endif %}" role="listitem" data-batch="{{ batch.batch_code }}" data-days="{{ batch.days_remaining }}" data-arrival="{{ batch.arrival_order }}">
-            <div class="lp-batch-product"><span class="lp-shelf-art" aria-hidden="true"><img src="{% if batch.status == 'safe' %}{% static 'images/landing/can.svg' %}{% else %}{% static 'images/landing/packet.svg' %}{% endif %}" width="74" height="90" alt="" loading="lazy"><span class="lp-shelf-rule"></span></span><div><h4>{{ batch.product_name }}</h4><span>{{ batch.batch_code }}</span></div></div>
-            <p class="lp-batch-quantity"><strong>{{ batch.quantity }}</strong> {{ batch.unit }}</p>
-            <div class="lp-batch-expiry"><span>{{ batch.expiry_date }}</span><small data-days-label>{{ batch.days_remaining }} araw pa</small></div>
-            <span class="lp-batch-status">{% if batch.is_highlighted %}Unahing ibenta <span aria-hidden="true">↗</span>{% else %}Susunod{% endif %}</span>
-          </article>
-          {% endif %}{% endfor %}
-        </div>
-        <div class="lp-expired-list" role="group" aria-label="Expired sample stock">
-          <p class="lp-expired-label"><span>Kahon ng segregasyon</span><span>Hindi ibinebenta</span></p>
-          <div class="lp-expired-items" role="list">
-            {% for batch in inventory_batches %}{% if not batch.is_sellable %}
-            <div class="lp-expired-batch" role="listitem"><img class="lp-expired-art" src="{% static 'images/landing/sachet.svg' %}" width="48" height="58" alt="" loading="lazy"><div><strong>{{ batch.product_name }}</strong><span>{{ batch.batch_code }} / {{ batch.quantity }} {{ batch.unit }} / Expiry {{ batch.expiry_date }}</span></div><span class="lp-expired-status">Expired na<br><strong>Huwag ibenta</strong></span></div>
-            {% endif %}{% endfor %}
+          <div class="lp-lw-tabs" role="group" aria-label="Filter customers">
+            <button type="button" class="lp-lw-tab active" data-suki-filter="all">Lahat</button>
+            <button type="button" class="lp-lw-tab" data-suki-filter="active">May Utang</button>
+            <button type="button" class="lp-lw-tab" data-suki-filter="overdue">Overdue</button>
           </div>
+          <div class="lp-lw-suki-list" id="lp-suki-list">
+            <button type="button" class="lp-lw-suki active" data-suki="rosa" data-status="active">
+              <div class="lp-lw-suki-left">
+                <span class="lp-lw-avatar">R</span>
+                <div>
+                  <span class="lp-lw-suki-name">Aling Rosa</span>
+                  <span class="lp-lw-suki-sub">Blk 4 Lot 9</span>
+                </div>
+              </div>
+              <div class="lp-lw-suki-amt">
+                <span id="sidebar-rosa-amt">₱200.00</span>
+                <small>Active</small>
+              </div>
+            </button>
+
+            <button type="button" class="lp-lw-suki" data-suki="maria" data-status="overdue">
+              <div class="lp-lw-suki-left">
+                <span class="lp-lw-avatar">M</span>
+                <div>
+                  <span class="lp-lw-suki-name">Maria Santos</span>
+                  <span class="lp-lw-suki-sub">12 days overdue</span>
+                </div>
+              </div>
+              <div class="lp-lw-suki-amt">
+                <span>₱2,350.00</span>
+                <small style="color: #DC2626;">Overdue</small>
+              </div>
+            </button>
+
+            <button type="button" class="lp-lw-suki" data-suki="pedro" data-status="active">
+              <div class="lp-lw-suki-left">
+                <span class="lp-lw-avatar">P</span>
+                <div>
+                  <span class="lp-lw-suki-name">Pedro Reyes</span>
+                  <span class="lp-lw-suki-sub">Purok 2</span>
+                </div>
+              </div>
+              <div class="lp-lw-suki-amt">
+                <span>₱1,800.00</span>
+                <small>Active</small>
+              </div>
+            </button>
+          </div>
+          <div class="lp-lw-sidebar-foot">
+            <span>KABUUANG UTANG</span>
+            <strong id="sidebar-total-utang">₱4,350.00</strong>
+          </div>
+        </aside>
+
+        <!-- Right Active Customer Ledger -->
+        <div class="lp-lw-main">
+          <div class="lp-lw-head">
+            <div class="lp-lw-customer">
+              <span id="lw-active-avatar" class="lp-lw-customer-avatar">R</span>
+              <div>
+                <h3 id="lw-active-name">Aling Rosa</h3>
+                <span id="lw-active-sub">Suki sa kanto · Blk 4 Lot 9 · Interactive demo</span>
+              </div>
+            </div>
+            <div class="lp-lw-actions">
+              <button type="button" class="lp-lw-btn-outline" id="toggle-bayad-state">+ Toggle Utang</button>
+              <button type="button" class="lp-lw-btn-dark" id="record-payment">Record ₱150 Bayad</button>
+            </div>
+          </div>
+
+          <div class="lp-lw-metrics">
+            <div class="lp-lw-metric">
+              <span>Kabuuang Utang</span>
+              <strong id="demo-total-owed">₱350.00</strong>
+            </div>
+            <div class="lp-lw-metric is-payment">
+              <span>Bayad Na</span>
+              <strong id="demo-paid-amt">−₱150.00</strong>
+            </div>
+            <div class="lp-lw-metric is-balance">
+              <span>Natitirang Balanse</span>
+              <strong id="demo-balance">₱200.00</strong>
+              <small id="demo-equation">₱350.00 − ₱150.00 = ₱200.00</small>
+            </div>
+          </div>
+
+          <div class="lp-lw-table-wrap">
+            <div class="lp-lw-table-head">
+              <span>Oras</span>
+              <span>Paninda</span>
+              <span>Detalye</span>
+              <span style="text-align: right;">Halaga</span>
+              <span style="text-align: right;">Katayuan</span>
+            </div>
+            <div id="lw-rows-container">
+              <div class="lp-lw-row">
+                <span class="lp-lw-time">08:30 AM</span>
+                <strong>Bigas</strong>
+                <span>5 kg Dinorado</span>
+                <span class="lp-lw-num">₱250.00</span>
+                <span class="lp-lw-num">Utang</span>
+              </div>
+              <div class="lp-lw-row">
+                <span class="lp-lw-time">08:30 AM</span>
+                <strong>Mga pinamili</strong>
+                <span>Sardinas at sabon</span>
+                <span class="lp-lw-num">₱100.00</span>
+                <span class="lp-lw-num">Utang</span>
+              </div>
+              <div class="lp-extra-rows"></div>
+              <div class="lp-lw-row is-paid-row" id="demo-payment">
+                <span class="lp-lw-time">04:45 PM</span>
+                <strong>✓ Bayad ni Rosa</strong>
+                <span>Natanggap ngayong araw</span>
+                <span class="lp-lw-num">−₱150.00</span>
+                <span class="lp-lw-num">Recorded</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="lp-lw-bottom">
+            <div class="lp-lw-quick-add" id="lw-quick-add" role="group" aria-label="Dagdag na pinamili">
+              <button type="button" class="lp-lw-chip" data-item="itlog" data-name="Itlog" data-detail="6 piraso" data-amount="48" aria-pressed="false">+ Itlog ₱48</button>
+              <button type="button" class="lp-lw-chip" data-item="kape" data-name="Kape" data-detail="3-in-1, 4 sachet" data-amount="36" aria-pressed="false">+ Kape ₱36</button>
+              <button type="button" class="lp-lw-chip" data-item="mantika" data-name="Mantika" data-detail="1 lapad" data-amount="62" aria-pressed="false">+ Mantika ₱62</button>
+              <button type="button" id="reset-ledger" class="lp-lw-chip-reset">Reset</button>
+            </div>
+            <p class="lp-lw-demo-caption" id="demo-caption">Bawat bayad, malinaw ang natitira.</p>
+          </div>
+          <span id="demo-status" class="lp-sr" role="status" aria-live="polite" aria-atomic="true"></span>
         </div>
-        <div class="lp-stock-footnote"><span id="stock-caption">Nakaayos mula sa pinakamaagang expiry.</span><span>Sample data</span></div>
-        <span id="stock-status" class="lp-sr" role="status" aria-live="polite" aria-atomic="true"></span>
       </div>
     </section>
-    <section class="lp-daily lp-container" id="daily-overview" aria-labelledby="daily-title">
-      <div class="lp-section-intro"><h2 id="daily-title" data-reveal-heading>Kita ang galaw <br>ng araw.</h2><p class="lp-section-description">Magkaiba ang benta at perang pumasok.<br>May sariling tala ang bawat isa.</p></div>
-      <div class="lp-day-scene">
-        <div class="lp-day-meta"><span>{{ today_display }}</span><span class="lp-day-hint" hidden>Itapat o i-tap ang isang tala para makita kung saan ito napupunta</span><span>Sample day / talaan ng araw</span></div>
-        <div class="lp-day-flow">
-          <div class="lp-tape" role="list" aria-label="Sample daily transactions"><div class="lp-tape-heading" aria-hidden="true"><span>TindaHan Ledger</span><span>SALES &amp; PAYMENTS</span></div>
+
+    <!-- 3. Dark FIFO Stock Showcase -->
+    <section class="lp-dark-band" id="inventory-story" aria-labelledby="stock-title">
+      <div class="lp-container lp-dark-grid">
+        <div class="lp-dark-copy">
+          <h2 id="stock-title">Alam ang unang<br>dapat ibenta</h2>
+          <p>Mas maagang expiry, mas maagang ilabas sa estante. Para hindi masayang ang puhunan sa naipong paninda.</p>
+
+          <div class="lp-dark-controls-card">
+            <span class="lp-dc-label">Ayos ng listahan</span>
+            <div class="lp-dc-toggle" role="group" aria-label="Stock sort order">
+              <button type="button" data-stock-order="expiry" aria-pressed="true">Expiry priority</button>
+              <button type="button" data-stock-order="arrival" aria-pressed="false">Arrival order</button>
+            </div>
+
+            <div class="lp-dc-slider-head">
+              <label for="stock-days">Paandarin ang araw</label>
+              <output id="stock-days-output" for="stock-days">Ngayon</output>
+            </div>
+            <input type="range" id="stock-days" class="lp-dc-range" min="0" max="7" step="1" value="0">
+            <div class="lp-dc-ticks">
+              <span>Ngayon</span>
+              <span>+3 araw</span>
+              <span>+7 araw</span>
+            </div>
+
+            <div class="lp-dc-legend">
+              <div class="lp-dc-legend-row"><span class="lp-dot lp-dot-orange"></span><span>Unahing ibenta (≤3 araw)</span></div>
+              <div class="lp-dc-legend-row"><span class="lp-dot lp-dot-green"></span><span>Fresh / Ligtas na stock</span></div>
+              <div class="lp-dc-legend-row"><span class="lp-dot lp-dot-red"></span><span>Nakahiwalay sa Kahon ng Segregasyon</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="lp-stock-cards" id="lp-stock-cards">
+          {% for batch in inventory_batches %}
+            {% if batch.is_sellable %}
+            <article
+              class="lp-stock-card {% if batch.is_highlighted %}is-priority{% endif %}"
+              data-batch="{{ batch.batch_code }}"
+              data-days="{{ batch.days_remaining }}"
+              data-arrival="{{ batch.arrival_order }}"
+            >
+              <div class="lp-sc-top">
+                <div class="lp-sc-product">
+                  <span class="lp-sc-art" aria-hidden="true">
+                    <img src="{% if batch.status == 'safe' %}{% static 'images/landing/can.svg' %}{% else %}{% static 'images/landing/packet.svg' %}{% endif %}" alt="">
+                  </span>
+                  <div>
+                    <span class="lp-sc-badge {% if batch.is_highlighted %}lp-sc-badge-orange{% elif batch.status == 'safe' %}lp-sc-badge-green{% else %}lp-sc-badge-muted{% endif %}" data-batch-badge>
+                      {% if batch.is_highlighted %}Unahing Ibenta{% elif batch.status == 'safe' %}Ligtas{% else %}Fresh{% endif %}
+                    </span>
+                    <h3 class="lp-sc-title">{{ batch.product_name }}</h3>
+                    <div class="lp-sc-meta">{{ batch.batch_code }} • {{ batch.shelf_location }}</div>
+                  </div>
+                </div>
+                <div class="lp-sc-days">
+                  <strong data-days-num>{{ batch.days_remaining }} araw</strong>
+                  <small>bago mag-expire</small>
+                </div>
+              </div>
+              <div class="lp-sc-foot">
+                <span>{{ batch.quantity }} {{ batch.unit }} sa estante</span>
+                <span>Exp: {{ batch.expiry_date }}</span>
+              </div>
+              {% if batch.is_highlighted %}
+              <div class="lp-sc-bar" aria-hidden="true"><span></span></div>
+              {% endif %}
+            </article>
+            {% else %}
+            <div class="lp-segregation-box">
+              <div class="lp-sc-product">
+                <span class="lp-sc-art" aria-hidden="true">
+                  <img src="{% static 'images/landing/sachet.svg' %}" alt="">
+                </span>
+                <div>
+                  <span class="lp-sc-badge" style="background: rgba(239,68,68,0.2); color: #FCA5A5;">Kahon ng Segregasyon</span>
+                  <h3 class="lp-sc-title">{{ batch.product_name }}</h3>
+                  <div class="lp-sc-meta">{{ batch.batch_code }} • {{ batch.quantity }} {{ batch.unit }} • Expiry {{ batch.expiry_date }}</div>
+                </div>
+              </div>
+              <span class="lp-seg-pill">Huwag Ibenta</span>
+            </div>
+            {% endif %}
+          {% endfor %}
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. Daily Overview / Accounting Split -->
+    <section class="lp-section lp-container" id="daily-overview" aria-labelledby="daily-title">
+      <div class="lp-section-head">
+        <h2 id="daily-title">Hiwalay ang benta<br>sa perang pumasok</h2>
+        <p>Ang lumang bayad sa utang ay pera sa kaha, pero hindi bagong benta ngayon. Kitang-kita ang pagkakaiba sa bawat araw.</p>
+      </div>
+
+      <div class="lp-daily-grid">
+        <div class="lp-tape-card">
+          <div class="lp-tape-top">
+            <strong>Talaan ng araw · {{ today_display }}</strong>
+            <div class="lp-tape-legend">
+              <span>• Benta</span>
+              <span>• Cash in</span>
+            </div>
+          </div>
+
+          <div class="lp-tape-list">
             {% for item in daily_transactions %}
-            <article class="lp-tape-row" role="listitem" tabindex="0" data-transaction="{% if forloop.first %}cash{% elif forloop.last %}payment{% else %}credit{% endif %}"><span class="lp-tape-time">{{ item.time }}</span><div><h3>{{ item.customer_name }}</h3><span>{% if forloop.first %}Cash sale{% elif forloop.last %}Bayad sa utang{% else %}Pautang{% endif %}</span><small class="lp-tape-effect">{{ item.accounting_effect }}</small></div><strong>₱{{ item.amount|floatformat:2 }}</strong></article>
+            <div
+              class="lp-tape-row {% if forloop.last %}is-payment-tint{% endif %}"
+              tabindex="0"
+              data-transaction="{% if forloop.first %}cash{% elif forloop.last %}payment{% else %}credit{% endif %}"
+            >
+              <span class="lp-tape-time">{{ item.time }}</span>
+              <div>
+                <div class="lp-tape-title">
+                  <strong>{{ item.customer_name }}</strong>
+                  <span class="lp-tx-badge {% if forloop.first %}lp-tx-cash{% elif forloop.last %}lp-tx-payment{% else %}lp-tx-credit{% endif %}">
+                    {{ item.transaction_type }}
+                  </span>
+                </div>
+                <span class="lp-tape-items">{{ item.items_summary }} · {{ item.receipt_no }}</span>
+              </div>
+              <div class="lp-tape-amt">
+                <strong>₱{{ item.amount|floatformat:2 }}</strong>
+                <small>{{ item.accounting_effect }}</small>
+              </div>
+            </div>
             {% endfor %}
           </div>
-          <svg class="lp-flow-lines" viewBox="0 0 120 336" preserveAspectRatio="none" fill="none" aria-hidden="true"><path data-flow="sales" d="M0 101 H35 V81 H120 M0 191 H35 V81"/><path data-flow="cash" d="M0 101 H70 V255 H120 M0 281 H70 V255"/></svg>
-          <div class="lp-day-totals"><div class="lp-day-total" data-total="sales"><span>Kabuuang benta</span><strong>₱{{ daily_summary.sales_recorded|floatformat:2 }}</strong><p>₱120 cash sale + ₱350 pautang</p></div><div class="lp-day-total" data-total="cash"><span>Perang pumasok</span><strong>₱{{ daily_summary.payments_received|floatformat:2 }}</strong><p>₱120 cash sale + ₱150 bayad</p></div></div>
         </div>
-        <div class="lp-day-settlement"><span class="lp-settlement-check" aria-hidden="true">✓</span><div><strong>₱150.00 bayad sa dating utang</strong><span>Kasama sa perang pumasok. Hiwalay sa bagong benta.</span></div><span class="lp-settlement-label">SAMPLE SETTLEMENT</span></div>
-        <details class="lp-accounting"><summary>Bakit magkaiba ang benta at perang pumasok?<span class="lp-plus" aria-hidden="true">+</span></summary><p>Ang ₱150 na bayad sa dating utang ay perang pumasok, hindi bagong benta. Kaya ₱470 ang benta at ₱270 ang perang pumasok sa sample na ito.</p></details>
+
+        <div class="lp-totals-stack">
+          <div class="lp-total-card" data-total="sales">
+            <div class="lp-total-top">
+              <span>Kabuuang Benta</span>
+              <span class="lp-tx-badge lp-tx-credit">Sales Recorded</span>
+            </div>
+            <div class="lp-total-val">₱{{ daily_summary.sales_recorded|floatformat:2 }}</div>
+            <div class="lp-total-bar lp-total-bar-orange"><span></span></div>
+            <p class="lp-total-sub">₱{{ daily_summary.cash_sales|floatformat:2 }} cash sale + ₱{{ daily_summary.utang_sales|floatformat:2 }} pautang</p>
+          </div>
+
+          <div class="lp-total-card" data-total="cash">
+            <div class="lp-total-top">
+              <span>Perang Pumasok</span>
+              <span class="lp-tx-badge lp-tx-payment">Cash in Drawer</span>
+            </div>
+            <div class="lp-total-val">₱{{ daily_summary.payments_received|floatformat:2 }}</div>
+            <div class="lp-total-bar lp-total-bar-green"><span></span></div>
+            <p class="lp-total-sub">₱{{ daily_summary.cash_sales|floatformat:2 }} cash sale + ₱{{ daily_summary.bayad_collected|floatformat:2 }} bayad sa utang</p>
+          </div>
+        </div>
       </div>
     </section>
-    <section class="lp-features-section lp-container" id="mga-tampok" aria-labelledby="features-title">
-      <div class="lp-section-intro">
-        <p class="lp-eyebrow">ARAW-ARAW NA KALAKALAN</p>
-        <h2 id="features-title" data-reveal-heading>Dinisenyo para sa <br>tunay na tindahan.</h2>
-        <p class="lp-section-description">Tatlong simpleng patakaran sa likod ng malinis na kwenta at paninda.</p>
-      </div>
-      <div class="lp-features-grid">
-        <article class="lp-feature-card">
-          <div>
-            <span class="lp-feature-tag">[01] KREDITO AT SUKI</span>
-            <h3>Bawas agad sa bawat hulog.</h3>
-            <p>Wala nang nawawalang pilyas ng kwaderno o hindi maunawaang lista. Bawat pautang at hulog ay may sariling talaan at resibo para walang alitan sa suki.</p>
-          </div>
-          <div class="lp-feature-meta">
-            <span>MODYUL: TALAAN NG UTANG</span>
-            <span>✓ Tumpak na balanse</span>
-          </div>
-        </article>
-        <article class="lp-feature-card">
-          <div>
-            <span class="lp-feature-tag">[02] FIFO AT ESTANTE</span>
-            <h3>Unang dumating, unang ibenta.</h3>
-            <p>Iwas tapon sa panindang napabayaan sa ilalim o likod. Awtomatikong pinapangkat ang mga produktong malapit nang mag-expire upang mauna sa harap ng estante.</p>
-          </div>
-          <div class="lp-feature-meta">
-            <span>MODYUL: BATCH TRACKING</span>
-            <span>✓ Iwas tapon</span>
-          </div>
-        </article>
-        <article class="lp-feature-card">
-          <div>
-            <span class="lp-feature-tag">[03] BALANSE NG KAHA</span>
-            <h3>Benta laban sa perang pumasok.</h3>
-            <p>Ibinubukod ang bagong benta sa natanggap na bayad sa lumang pautang. Bago magsara sa gabi, tugma ang hawak na barya at papel sa talaan ng tindahan.</p>
-          </div>
-          <div class="lp-feature-meta">
-            <span>MODYUL: DAILY RECONCILIATION</span>
-            <span>✓ Malinaw na kaha</span>
-          </div>
-        </article>
+
+    <!-- 5. Centered Editorial Pull-Quote -->
+    <section class="lp-quote-band lp-container" aria-label="Store clarity summary">
+      <blockquote>
+        Mas madaling maningil at magmonitor ng stock<br>
+        kapag malinaw sa unang tingin<br>
+        <span class="lp-quote-muted">ang bawat piso at bawat paninda.</span>
+      </blockquote>
+    </section>
+
+    <!-- 6. Asymmetric FAQ -->
+    <section class="lp-section lp-container" id="faq" aria-labelledby="faq-title">
+      <div class="lp-faq-grid">
+        <div>
+          <h2 id="faq-title" style="font-size: clamp(28px, 3vw, 38px); font-weight: 700; line-height: 1.14; letter-spacing: -0.03em; margin: 0;">Mga sagot bago<br>ka magsimula</h2>
+          <p style="font-size: 13.5px; color: var(--color-ink-secondary); margin-top: 12px; max-width: 32ch;">Mabilis na tugon sa mga karaniwang tanong tungkol sa pagtala ng utang at stock.</p>
+        </div>
+
+        <div class="lp-faq-list">
+          <details open>
+            <summary>Para kanino ang TindaHan Ledger?<span class="lp-faq-plus" aria-hidden="true">+</span></summary>
+            <p>Para sa mga may-ari ng sari-sari store, tindero, at tindera na gustong ayusin ang tala ng utang, bayad, at paninda nang walang nawawalang notebook page.</p>
+          </details>
+          <details>
+            <summary>Totoong customer data ba ang nasa sample?<span class="lp-faq-plus" aria-hidden="true">+</span></summary>
+            <p>Hindi. Sample data lamang ang ipinapakita sa demo (gaya ni Aling Rosa); magsisimula ka sa malinis na talaan kapag gumawa ng sariling account.</p>
+          </details>
+          <details>
+            <summary>Bakit hiwalay ang bayad sa utang sa kabuuang benta?<span class="lp-faq-plus" aria-hidden="true">+</span></summary>
+            <p>Ang bayad sa lumang utang ay perang pumasok sa kaha ngunit naisama na sa benta noong araw na pinautang ito. Sa paghihiwalay ng dalawa, laging tama ang kwenta ng tubo at kaha.</p>
+          </details>
+          <details>
+            <summary>Paano magsimula gamit ang sariling tindahan?<span class="lp-faq-plus" aria-hidden="true">+</span></summary>
+            <p>Pindutin ang <a href="{% url 'register:register' %}">Create account</a> at ilagay ang pangalan ng iyong tindahan. May account na? <a href="{% url 'login:login' %}">Sign in</a> agad.</p>
+          </details>
+        </div>
       </div>
     </section>
-    <section class="lp-faq lp-container" id="faq" aria-labelledby="faq-title">
-      <div>
-        <h2 id="faq-title" data-reveal-heading>Bago ka <br>magsimula.</h2>
-        <p class="lp-section-description">Mga kasagutan sa araw-araw na pagpapatakbo ng tindahan gamit ang ledger.</p>
-      </div>
-      <div class="lp-faq-list" data-reveal>
-        <details>
-          <summary>Para kanino ang TindaHan Ledger?<span class="lp-plus" aria-hidden="true">+</span></summary>
-          <p>Para sa sari-sari store owners, tindero, at tindera na gustong magkaroon ng organisadong talaan ng utang, bayad, at inbentaryo nang hindi umaasa sa kwadernong madaling mapunit o mawala.</p>
-        </details>
-        <details>
-          <summary>Paano kung hulugan o pira-piraso ang bayad ni suki?<span class="lp-plus" aria-hidden="true">+</span></summary>
-          <p>Tanggapin lamang ang halaga bilang hulog. Awtomatikong ibabawas ng ledger ang ibinayad sa natitirang utang at magtatala ng resibo kasama ang petsa at oras.</p>
-        </details>
-        <details>
-          <summary>Paano nalalaman kung aling batch ang dapat unahing ibenta?<span class="lp-plus" aria-hidden="true">+</span></summary>
-          <p>Nakaayos ang inbentaryo gamit ang First-In, First-Out (FIFO) at expiry sorting. Ang mga batch na 7 araw na lang ang nalalabi ay may babala upang agad maipwesto sa harap ng estante.</p>
-        </details>
-        <details>
-          <summary>Ano ang mangyayari sa panindang lumampas na sa expiry date?<span class="lp-plus" aria-hidden="true">+</span></summary>
-          <p>Awtomatiko itong inililipat sa talaan ng "Kahon ng Segregasyon" (Huwag Ibenta) upang maibukod sa paninda at maiwasan ang reklamo o pagkalason ng mamimili.</p>
-        </details>
-        <details>
-          <summary>Kailangan ba ng internet connection sa loob ng tindahan?<span class="lp-plus" aria-hidden="true">+</span></summary>
-          <p>Hindi palagi. Dinisenyo ang interface upang maging magaan at mabilis gamitin sa browser kahit sa mabagal na mobile data o lokal na network sa counter.</p>
-        </details>
-        <details>
-          <summary>Totoong customer data ba ang nakikita sa demo?<span class="lp-plus" aria-hidden="true">+</span></summary>
-          <p>Hindi. Ang mga tala sa demo (tulad ni Aling Rosa) ay sample data lamang para masubukan ang daloy. Kapag nag-create ka ng account, magsisimula ka sa malinis na talaan ng sarili mong tindahan.</p>
-        </details>
+
+    <!-- 7. Dark Closing CTA Card -->
+    <section class="lp-container" style="padding-bottom: 64px;" aria-labelledby="closing-title">
+      <div class="lp-closing-card">
+        <div class="lp-closing-left">
+          <h2 id="closing-title">Mas maayos ang<br>susunod na araw</h2>
+          <p>Libre ang paggawa ng talaan para sa iyong tindahan. Buksan sa cellphone o computer sa counter.</p>
+          <div class="lp-closing-btns">
+            <a class="lp-pill-cta" href="{% url 'register:register' %}" style="padding: 8px 8px 8px 18px;">
+              <span>Create account</span>
+              <span class="lp-pill-cta-icon" aria-hidden="true">↗</span>
+            </a>
+            <a class="lp-closing-signin" href="{% url 'login:login' %}">Sign in ↗</a>
+          </div>
+        </div>
+
+        <div class="lp-closing-panel" aria-label="Handa na ang sistema">
+          <div class="lp-cp-head">
+            <span>Handa na ang sistema</span>
+            <span class="lp-cp-tag">LIVE READY</span>
+          </div>
+          <div class="lp-cp-item">
+            <div class="lp-cp-left">
+              <span class="lp-cp-icon lp-cp-green" aria-hidden="true">✓</span>
+              <span>Talaan ng Utang at Hulog</span>
+            </div>
+            <span class="lp-cp-sub">Bawas agad sa bayad</span>
+          </div>
+          <div class="lp-cp-item">
+            <div class="lp-cp-left">
+              <span class="lp-cp-icon lp-cp-orange" aria-hidden="true">•</span>
+              <span>FIFO Expiry Tracking</span>
+            </div>
+            <span class="lp-cp-sub">Iwas tapon sa estante</span>
+          </div>
+          <div class="lp-cp-item">
+            <div class="lp-cp-left">
+              <span class="lp-cp-icon lp-cp-green" aria-hidden="true">✓</span>
+              <span>Balanse ng Kaha</span>
+            </div>
+            <span class="lp-cp-sub">Malinaw bawat pagsara</span>
+          </div>
+        </div>
       </div>
     </section>
-    <section class="lp-closing lp-container" aria-labelledby="closing-title"><div class="lp-closing-inner"><h2 id="closing-title" data-reveal-heading>Mas maayos ang <br>susunod na araw.</h2><div class="lp-closing-actions"><a class="lp-button lp-button-ink" href="{% url 'register:register' %}" data-magnetic><span>Create account <span aria-hidden="true">↗</span></span></a><a class="lp-text-link" href="{% url 'login:login' %}">Sign in <span aria-hidden="true">↗</span></a></div><span class="lp-closing-mark" aria-hidden="true">t.</span></div></section>
   </main>
-  <footer class="lp-footer lp-container"><a class="lp-brand" href="{% url 'landing:landing' %}">TindaHan Ledger</a><span>Para sa araw-araw na tindahan.</span><nav aria-label="Footer"><a href="#ledger-demo">Ang ledger</a><a href="#inventory-story">Ang stock</a><a href="#daily-overview">Ang araw</a><a href="#mga-tampok">Mga tampok</a><a href="{% url 'login:login' %}">Sign in</a></nav></footer>
+
+  <!-- Minimal Editorial Footer -->
+  <footer class="lp-footer lp-container">
+    <a class="lp-footer-brand" href="{% url 'landing:landing' %}">
+      <span class="lp-brand-mark" aria-hidden="true">t.</span>
+      <span>TindaHan Ledger</span>
+    </a>
+    <span style="color: var(--color-ink-muted);">Para sa araw-araw na tindahan.</span>
+    <nav class="lp-footer-nav" aria-label="Footer">
+      <a href="#ledger-demo">Ang ledger</a>
+      <a href="#inventory-story">Ang stock</a>
+      <a href="#daily-overview">Ang araw mo</a>
+      <a href="#faq">Mga tanong</a>
+      <a href="{% url 'login:login' %}">Sign in</a>
+    </nav>
+  </footer>
 </body>
 </html>
