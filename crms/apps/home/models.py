@@ -4,11 +4,11 @@ from django.contrib.auth.models import User as AuthUser
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from decimal import Decimal
-import datetime
 
 
 # 1. users
 class User(models.Model):
+    auth_user = models.OneToOneField(AuthUser, null=True, blank=True, on_delete=models.SET_NULL, related_name='business_user')
     username = models.CharField(max_length=150, unique=True)
     password_hash = models.CharField(max_length=255)
     email = models.CharField(max_length=254, blank=True, null=True)
@@ -29,12 +29,16 @@ class User(models.Model):
 
 # 2. stores
 class Store(models.Model):
+    is_demo = models.BooleanField(default=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='stores', db_column='user_id')
     store_name = models.CharField(max_length=200)
     owner_name = models.CharField(max_length=150)
     phone_number = models.CharField(max_length=20, blank=True)
     gcash_number = models.CharField(max_length=20, blank=True)
     address = models.TextField(blank=True)
+    business_category = models.CharField(max_length=150, blank=True)
+    city = models.CharField(max_length=150, blank=True)
+    operating_hours = models.CharField(max_length=150, blank=True)
     ledger_volume = models.CharField(max_length=100, blank=True)
     is_device_synced = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -118,6 +122,8 @@ class ProductBatch(models.Model):
     days_left = models.IntegerField(null=True, blank=True)
     capital_loss = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal('0.00'))
     shelf_location = models.CharField(max_length=100, blank=True)
+    disposed_at = models.DateTimeField(null=True, blank=True)
+    disposed_quantity = models.PositiveIntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -128,16 +134,15 @@ class ProductBatch(models.Model):
 
     def save(self, *args, **kwargs):
         if self.expiry_date:
-            today = datetime.date.today()
+            today = timezone.localdate()
             delta = (self.expiry_date - today).days
             self.days_left = delta
             if delta < 0:
                 self.status, self.status_label = 'expired', f"Expired {abs(delta)} days ago"
-                self.capital_loss = (self.cost_price or Decimal('0.00')) * self.quantity
             elif delta <= 7:
-                self.status, self.status_label, self.capital_loss = 'expiring_soon', f"Expires in {delta} days", Decimal('0.00')
+                self.status, self.status_label = 'expiring_soon', f"Expires in {delta} days"
             else:
-                self.status, self.status_label, self.capital_loss = 'healthy', f"Fresh ({delta} days left)", Decimal('0.00')
+                self.status, self.status_label = 'healthy', f"Fresh ({delta} days left)"
         super().save(*args, **kwargs)
 
     def __str__(self):
@@ -173,7 +178,7 @@ class Customer(models.Model):
         if not self.avatar_letter and self.name:
             self.avatar_letter = self.name.strip()[0].upper()
         if self.due_date and self.running_balance > Decimal('0.00'):
-            today = datetime.date.today()
+            today = timezone.localdate()
             if today > self.due_date:
                 self.days_overdue = (today - self.due_date).days
                 self.status, self.status_label = 'overdue', f"{self.days_overdue} days overdue"
@@ -189,6 +194,7 @@ class Customer(models.Model):
 
 # 7. sales_transactions
 class SalesTransaction(models.Model):
+    checkout_token = models.UUIDField(null=True, blank=True, unique=True)
     store = models.ForeignKey(Store, on_delete=models.CASCADE, related_name='sales_transactions', db_column='store_id')
     customer = models.ForeignKey(Customer, on_delete=models.SET_NULL, null=True, blank=True, related_name='sales_transactions', db_column='customer_id')
     receipt_no = models.CharField(max_length=100, unique=True)
@@ -272,7 +278,7 @@ class SMSReminder(models.Model):
     phone_number = models.CharField(max_length=20)
     message_content = models.TextField()
     balance_at_send = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal('0.00'))
-    sent_status = models.CharField(max_length=50, default='sent')
+    sent_status = models.CharField(max_length=50, default='simulated')
     sent_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -310,10 +316,16 @@ class DailyStoreSummary(models.Model):
 # Signals for Auth Sync
 @receiver(post_save, sender=AuthUser)
 def sync_auth_user_with_erd(sender, instance, created, **kwargs):
+    if kwargs.get('raw'):
+        return
+    linked = User.objects.filter(auth_user=instance).first()
+    username = instance.username
+    if User.objects.filter(username=username).exclude(pk=linked.pk if linked else None).exists():
+        username = f'account-{instance.pk}-{instance.username}'[:150]
     erd_user, _ = User.objects.update_or_create(
-        id=instance.id,
+        auth_user=instance,
         defaults={
-            'username': instance.username,
+            'username': username,
             'password_hash': instance.password,
             'email': instance.email or '',
             'phone': instance.username if instance.username.replace('+', '').isdigit() else '',
@@ -331,6 +343,6 @@ def sync_auth_user_with_erd(sender, instance, created, **kwargs):
                 'store_name': f"{owner_name}'s Tindahan",
                 'owner_name': owner_name,
                 'phone_number': erd_user.phone or '',
-                'is_device_synced': True,
+                'is_device_synced': False,
             }
         )

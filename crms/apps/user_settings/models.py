@@ -8,6 +8,12 @@ class UserSettings(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     dark_mode = models.BooleanField(default=False)
     email_notifications = models.BooleanField(default=True)
+    default_credit_limit = models.DecimalField(max_digits=12, decimal_places=2, default=3000)
+    overdue_grace_days = models.PositiveSmallIntegerField(default=7)
+    reminder_threshold_days = models.PositiveSmallIntegerField(default=3)
+    expiry_window_days = models.PositiveSmallIntegerField(default=7)
+    low_stock_threshold = models.PositiveIntegerField(default=10)
+    block_over_limit = models.BooleanField(default=True)
 
     def __str__(self):
         return f"Settings for {self.user.username}"

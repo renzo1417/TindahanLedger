@@ -16,7 +16,8 @@ from .models import (
 
 @admin.register(User)
 class UserAdmin(admin.ModelAdmin):
-    list_display = ('id', 'username', 'email', 'phone', 'first_name', 'last_name', 'is_active', 'date_joined')
+    list_display = ('id', 'username', 'auth_user', 'email', 'phone', 'first_name', 'last_name', 'is_active', 'date_joined')
+    readonly_fields = ('password_hash',)
     search_fields = ('username', 'email', 'phone', 'first_name', 'last_name')
     list_filter = ('is_active', 'date_joined')
 
