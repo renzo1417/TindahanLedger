@@ -1,0 +1,31 @@
+{% extends 'base.html' %}{% block title %}Add product · TindaHan Ledger{% endblock %}{% block content %}
+<a class="back-link" href="{% url 'inventory:inventory_list' %}">← Inventory</a>
+<div class="page-heading">
+<div>
+<h1>Add a product</h1>
+<p class="muted">Set the price, then add the opening batch.</p>
+</div>
+</div>
+<div class="content-and-aside">
+<form class="paper-section" method="post">{% csrf_token %}{{ form.non_field_errors }}<div class="section-heading">
+<h2>Product details</h2>
+</div>
+<div class="form-grid">{% include 'components/field.html' with field=form.name %}{% include 'components/field.html' with field=form.category_name %}{% include 'components/field.html' with field=form.sku %}{% include 'components/field.html' with field=form.unit %}{% include 'components/field.html' with field=form.cost_price %}{% include 'components/field.html' with field=form.selling_price %}</div><div class="full-field">{% include 'components/field.html' with field=form.low_stock_threshold %}</div>{% include 'components/field.html' with field=form.has_expiry %}
+<div class="divider">
+</div>
+<div class="section-heading">
+<h2>Opening stock</h2>
+</div>
+<div class="form-grid">{% include 'components/field.html' with field=form.stock_quantity %}{% include 'components/field.html' with field=form.batch_code %}{% include 'components/field.html' with field=form.expiry_date %}{% include 'components/field.html' with field=form.shelf_location %}</div>
+<div class="form-actions">
+<button class="button primary" type="submit">Save product</button>
+<a class="button" href="{% url 'inventory:inventory_list' %}">Cancel</a>
+</div>
+</form>
+<aside class="paper-section guidance dark-surface">{% include 'components/icon.html' with name='imgIconPackage' size=32 %}<h2>A product can have more than one batch</h2>
+<p>Keep a separate batch for each stock arrival. Dates and costs stay attached to the batch you received.</p>
+<div class="divider">
+</div>
+<p>New stock cannot already be expired.</p>
+</aside>
+</div>{% endblock %}

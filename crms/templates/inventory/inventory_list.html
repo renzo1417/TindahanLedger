@@ -1,313 +1,79 @@
-{% extends 'base.html' %}
-{% load static %}
-
-{% block title %}Inventory Management • {{ global_store_profile.store_name }}{% endblock %}
-
-{% block extra_head %}
-<link rel="stylesheet" href="{% static 'css/inventory/inventory.css' %}">
-{% endblock %}
-
-{% block page_heading %}Inventory & Stock Directory{% endblock %}
-{% block page_subheading %}Track on-hand paninda stock, wholesale cost puhunan, and batch expiry dates{% endblock %}
-
-{% block content %}
-<div class="container-app-fluid space-y-6">
-  <!-- Screen Header -->
-  <section class="section-header anim-fade-up anim-delay-1">
-    <div>
-      <h1 class="page-title">Master Inventory & Stock Catalog</h1>
-      <p class="page-subtitle">{{ total_products_count }} active paninda items in store catalog • <strong>{{ low_stock_count }} items need restock</strong></p>
-    </div>
-    <div class="header-actions">
-      <button type="button" class="btn btn-secondary" onclick="window.print()">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
-        <span>Print Stock Sheet</span>
-      </button>
-      <button type="button" class="btn btn-secondary" onclick="openModal('restock-batch-modal')">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
-        <span>Restock Batch</span>
-      </button>
-      <button type="button" class="btn btn-primary" onclick="openModal('add-product-modal')">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-        <span>Add Product</span>
-      </button>
-    </div>
-  </section>
-
-  <!-- 4 Editorial KPI Stat Cards -->
-  <section class="inventory-kpi-grid anim-fade-up anim-delay-2">
-    <!-- Card 1: Active Catalog Items -->
-    <div class="kpi-card-inventory">
-      <div class="kpi-header">
-        <span class="kpi-label">Paninda Catalog</span>
-        <div class="kpi-icon-pill">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
-        </div>
-      </div>
-      <div>
-        <div class="kpi-value">{{ total_products_count }} SKUs</div>
-        <p class="kpi-subtext">{{ total_units_on_hand }} total units on shelf</p>
-      </div>
-    </div>
-
-    <!-- Card 2: Wholesale Puhunan Value -->
-    <div class="kpi-card-inventory">
-      <div class="kpi-header">
-        <span class="kpi-label">Puhunan (Cost Value)</span>
-        <div class="kpi-icon-pill">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"></rect><line x1="2" y1="10" x2="22" y2="10"></line></svg>
-        </div>
-      </div>
-      <div>
-        <div class="kpi-value">₱{{ total_puhunan_value|floatformat:2 }}</div>
-        <p class="kpi-subtext">Wholesale capital locked in inventory</p>
-      </div>
-    </div>
-
-    <!-- Card 3: Expected Retail Gross -->
-    <div class="kpi-card-inventory">
-      <div class="kpi-header">
-        <span class="kpi-label">Retail Gross Value</span>
-        <div class="kpi-icon-pill">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>
-        </div>
-      </div>
-      <div>
-        <div class="kpi-value">₱{{ total_retail_value|floatformat:2 }}</div>
-        <p class="kpi-subtext" style="color: var(--color-status-success-text); font-weight: 600;">+₱{{ total_projected_profit|floatformat:2 }} projected tubo</p>
-      </div>
-    </div>
-
-    <!-- Card 4: Stock Alerts -->
-    <a href="?status=low_stock" class="kpi-card-inventory {% if low_stock_count > 0 %}alert-state{% endif %}" style="text-decoration: none;">
-      <div class="kpi-header">
-        <span class="kpi-label">Stock Health</span>
-        <div class="kpi-icon-pill">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
-        </div>
-      </div>
-      <div>
-        <div class="kpi-value {% if low_stock_count > 0 %}text-alert{% endif %}">{{ low_stock_count }} Low Stock</div>
-        <p class="kpi-subtext {% if low_stock_count > 0 %}text-alert{% endif %}">{{ expiring_count }} batches expiry monitored</p>
-      </div>
-    </a>
-  </section>
-
-  <!-- Filter & Search Toolbar -->
-  <section class="inventory-toolbar anim-fade-up anim-delay-3">
-    <!-- Status Segmented Controls -->
-    <div class="segmented-control">
-      <a href="?status=all{% if selected_category != 'all' %}&category={{ selected_category|urlencode }}{% endif %}{% if search_query %}&q={{ search_query|urlencode }}{% endif %}" class="segment-tab {% if selected_status == 'all' %}active{% endif %}">
-        <span>All Items</span>
-        <span class="segment-badge-count">{{ total_products_count }}</span>
-      </a>
-      <a href="?status=low_stock{% if selected_category != 'all' %}&category={{ selected_category|urlencode }}{% endif %}{% if search_query %}&q={{ search_query|urlencode }}{% endif %}" class="segment-tab {% if selected_status == 'low_stock' %}active{% endif %}">
-        <span>Low Stock</span>
-        <span class="segment-badge-count {% if low_stock_count > 0 %}segment-badge-alert{% endif %}">{{ low_stock_count }}</span>
-      </a>
-      <a href="?status=expiring{% if selected_category != 'all' %}&category={{ selected_category|urlencode }}{% endif %}{% if search_query %}&q={{ search_query|urlencode }}{% endif %}" class="segment-tab {% if selected_status == 'expiring' %}active{% endif %}">
-        <span>Expiry Monitored</span>
-        <span class="segment-badge-count">{{ expiring_count }}</span>
-      </a>
-      <a href="?status=in_stock{% if selected_category != 'all' %}&category={{ selected_category|urlencode }}{% endif %}{% if search_query %}&q={{ search_query|urlencode }}{% endif %}" class="segment-tab {% if selected_status == 'in_stock' %}active{% endif %}">
-        <span>In Stock</span>
-        <span class="segment-badge-count">{{ in_stock_count }}</span>
-      </a>
-    </div>
-
-    <!-- Category Filter & Search Form -->
-    <form method="GET" action="" class="inventory-search-group">
-      <input type="hidden" name="status" value="{{ selected_status }}">
-      
-      <select name="category" class="inventory-select-category" onchange="this.form.submit()">
-        {% for cat in categories %}
-        <option value="{{ cat }}" {% if selected_category == cat %}selected{% endif %}>
-          {% if cat == 'All' %}All Categories{% else %}{{ cat }}{% endif %}
-        </option>
-        {% endfor %}
-      </select>
-
-      <div class="inventory-search-box">
-        <span class="search-icon">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-        </span>
-        <input 
-          type="text" 
-          name="q" 
-          class="inventory-search-input" 
-          placeholder="Search paninda or SKU..." 
-          value="{{ search_query }}"
-        >
-      </div>
-
-      <select id="inventory-sort-select" class="inventory-select-category" aria-label="Sort inventory">
-        <option value="default">Sort: Default Order</option>
-        <option value="low-stock">Sort: Lowest Stock First</option>
-        <option value="high-margin">Sort: Highest Tubo (%)</option>
-        <option value="low-cost">Sort: Lowest Puhunan</option>
-      </select>
-
-      {% if search_query or selected_category != 'all' or selected_status != 'all' %}
-      <a href="{% url 'inventory:inventory_list' %}" class="btn btn-secondary btn-sm" style="min-height: 38px;">Reset</a>
-      {% endif %}
-    </form>
-  </section>
-
-  <!-- Live Tubo / Markup Calculator Strip -->
-  <section class="tubo-calc-strip anim-fade-up anim-delay-3" aria-label="Quick tubo markup calculator">
-    <div class="tubo-calc-title-group">
-      <span class="tubo-calc-eyebrow">Tubo &amp; Presyo Calculator</span>
-      <span class="tubo-calc-sub">Check unit profit before setting shelf tags</span>
-    </div>
-
-    <div class="tubo-calc-inputs">
-      <div class="tubo-field">
-        <label for="calc-puhunan">Puhunan (₱)</label>
-        <input type="number" id="calc-puhunan" class="tubo-input" value="14.50" step="0.25" min="0">
-      </div>
-      <div class="tubo-field">
-        <label for="calc-presyo">Presyo (₱)</label>
-        <input type="number" id="calc-presyo" class="tubo-input" value="18.00" step="0.25" min="0">
-      </div>
-      <div class="tubo-field">
-        <label for="calc-units">Units / Pack</label>
-        <input type="number" id="calc-units" class="tubo-input" value="1" step="1" min="1" style="width: 88px;">
-      </div>
-    </div>
-
-    <div class="tubo-calc-outputs">
-      <div class="tubo-stat">
-        <span class="tubo-stat-label">Tubo / Unit</span>
-        <span id="calc-unit-tubo" class="tubo-stat-val positive">+₱3.50</span>
-      </div>
-      <div class="tubo-divider" aria-hidden="true"></div>
-      <div class="tubo-stat">
-        <span class="tubo-stat-label">Markup %</span>
-        <span id="calc-margin-pct" class="tubo-stat-val">24.1%</span>
-      </div>
-      <div class="tubo-divider" aria-hidden="true"></div>
-      <div class="tubo-stat">
-        <span class="tubo-stat-label">20% Target Presyo</span>
-        <span id="calc-suggested-price" class="tubo-stat-val">₱17.50</span>
-      </div>
-    </div>
-  </section>
-
-  <!-- Inventory Data Table -->
-  <section class="inventory-table-container anim-fade-up anim-delay-3">
-    <div class="table-responsive">
-      <table class="table-inventory">
-        <thead>
-          <tr>
-            <th class="col-product">Product & Paninda</th>
-            <th style="width: 130px;">Category</th>
-            <th style="text-align: right; width: 120px;">Wholesale Puhunan</th>
-            <th style="text-align: right; width: 110px;">Selling Presyo</th>
-            <th style="text-align: right; width: 140px;">Tubo / Margin</th>
-            <th style="text-align: center; width: 130px;">Stock on Hand</th>
-            <th style="text-align: right; width: 100px;">Actions</th>
-          </tr>
-        </thead>
-        <tbody id="inventory-table-body">
-          {% for product in products %}
-          <tr
-            class="inventory-row {% if product.stock_status == 'low_stock' %}inventory-row-low{% endif %}"
-            data-index="{{ forloop.counter0 }}"
-            data-stock="{{ product.stock_quantity }}"
-            data-margin="{{ product.profit_margin_pct }}"
-            data-cost="{{ product.cost_price }}"
-          >
-            <td class="col-product">
-              <span class="product-title">{{ product.name }}</span>
-              <div class="product-meta-sub">
-                <span class="tag-sku">{{ product.sku }}</span>
-                <span class="tag-unit">Per {{ product.unit }}</span>
-              </div>
-            </td>
-
-            <td>
-              <span class="tag-category">{{ product.category }}</span>
-            </td>
-
-            <td style="text-align: right;">
-              <span class="price-cost">₱{{ product.cost_price|floatformat:2 }}</span>
-            </td>
-
-            <td style="text-align: right;">
-              <span class="price-selling">₱{{ product.selling_price|floatformat:2 }}</span>
-            </td>
-
-            <td style="text-align: right;">
-              <span class="margin-pill">
-                +₱{{ product.profit_margin|floatformat:2 }} ({{ product.profit_margin_pct }}%)
-              </span>
-            </td>
-
-            <td style="text-align: center;">
-              <div class="stock-pill-container">
-                <span class="stock-count-number">{{ product.stock_quantity }} {{ product.unit }}s</span>
-                {% if product.stock_status == 'low_stock' %}
-                  <span class="badge-stock-low">Low Stock (≤{{ product.low_stock_threshold }})</span>
-                {% else %}
-                  <span class="badge-stock-ok">In Stock</span>
-                {% endif %}
-              </div>
-            </td>
-
-            <td style="text-align: right;">
-              <button 
-                type="button" 
-                class="btn-restock-action"
-                onclick="openRestockForProduct('{{ product.id }}', '{{ product.name|escapejs }}', '{{ product.cost_price }}')"
-                title="Add inventory restock batch"
-              >
-                <span>Restock</span>
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-              </button>
-            </td>
-          </tr>
-          {% empty %}
-          <tr>
-            <td colspan="7">
-              <div class="inventory-empty-state">
-                <div class="inventory-empty-icon">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
-                </div>
-                <h3 class="empty-state-title" style="margin-bottom: 6px;">No paninda items found</h3>
-                <p class="empty-state-desc" style="margin-bottom: 16px;">Try adjusting your search keywords or switching category filters.</p>
-                <button type="button" class="btn btn-primary" onclick="openModal('add-product-modal')">
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                  <span>Add New Paninda Product</span>
-                </button>
-              </div>
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-  </section>
+{% extends 'base.html' %}{% load ledger_ui %}{% block title %}Inventory · TindaHan Ledger{% endblock %}{% block content %}
+<div class="page-heading">
+<div>
+<h1>Inventory</h1>
+<p class="muted">Know what is on the shelves, down to the batch.</p>
 </div>
+<a class="button primary" href="{% url 'inventory:product_create' %}">Add product</a>
+</div>
+<div class="two-columns">
+<section class="attention-card">
+<div class="section-heading">
+<h2>{{ attention_count }} batch{{ attention_count|pluralize:'es' }} {% if attention_count == 1 %}needs{% else %}need{% endif %} attention</h2>{% include 'components/icon.html' with name='imgIconPackage' %}</div>
+<p>Check approaching expiry, expired stock, and missing dates.</p>
+<a href="{% url 'expiry' %}">Open expiry tracker →</a>
+</section>
+<section class="metric-card brand-surface">
+<span>Stock on hand</span>
+<strong>{{ total_units }} <small>units</small>
+</strong>
+<small>{{ product_count }} product{{ product_count|pluralize }} · ₱{{ inventory_cost|floatformat:"2g" }} at recorded cost</small>
+</section>
+</div>
+<form method="get" class="filter-bar">
+<label class="sr-only" for="inventory-search">Search product or SKU</label>
+<input id="inventory-search" name="q" type="search" value="{{ search_query }}" placeholder="Product name or SKU">
+<label class="sr-only" for="category">Category</label>
+<select name="category" id="category">
+<option value="">All categories</option>{% for category in categories %}<option {% if selected_category == category.name %}selected{% endif %}>{{ category.name }}</option>{% endfor %}</select>
+<input type="hidden" name="filter" value="{{ selected_filter }}">
+<button type="submit" class="button">Search</button>
+</form>
+<nav class="filter-tabs" aria-label="Inventory status">
+<a href="?filter=all&q={{ search_query|urlencode }}&category={{ selected_category|urlencode }}" {% if selected_filter == 'all' %}aria-current="page"{% endif %}>All products · {{ product_count }}</a>
+<a href="?filter=low_stock&q={{ search_query|urlencode }}&category={{ selected_category|urlencode }}" {% if selected_filter == 'low_stock' %}aria-current="page"{% endif %}>Low stock · {{ low_stock_count }}</a>
+<a href="?filter=expiring_soon&q={{ search_query|urlencode }}&category={{ selected_category|urlencode }}" {% if selected_filter == 'expiring_soon' %}aria-current="page"{% endif %}>Expiring · {{ expiring_count }}</a>
+<a href="?filter=expired&q={{ search_query|urlencode }}&category={{ selected_category|urlencode }}" {% if selected_filter == 'expired' %}aria-current="page"{% endif %}>Expired · {{ expired_count }}</a>
+</nav>
+<section class="paper-section">
+<div class="section-heading">
+<h2>Your paninda</h2>
+</div>
+<table class="responsive-table inventory-table">
+<thead>
+<tr>
+<th>Product</th>
+<th>Category</th>
+<th>On hand</th>
+<th>Price</th>
+<th>Next expiry</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>{% for product in products %}<tr>
+<td>
+<a class="record-link product-identity" href="{% url 'inventory:product_detail' product.pk %}">
 
-<!-- Action Modals for Inventory -->
-{% include 'components/add_product_modal.html' %}
-{% include 'components/restock_batch_modal.html' %}
-
-<script>
-function openRestockForProduct(productId, productName, costPrice) {
-  const modalTitle = document.getElementById('restock-modal-title');
-  if (modalTitle) {
-    modalTitle.textContent = `Restock: ${productName}`;
-  }
-  const costInput = document.getElementById('id_batch_cost');
-  if (costInput && costPrice) {
-    costInput.value = costPrice;
-  }
-  openModal('restock-batch-modal');
-}
-</script>
-{% endblock %}
-
-{% block extra_scripts %}
-<script src="{% static 'js/inventory/inventory.js' %}"></script>
-{% endblock %}
+<span>
+<strong>{{ product.name }}</strong>
+<small>{{ product.sku|default:'No SKU' }}</small>
+</span>
+</a>
+</td>
+<td data-label="Category">{{ product.category.name|default:'Uncategorized' }}</td>
+<td data-label="On hand">{{ product.stock_quantity }} {{ product.unit }}<span class="mobile-category"> · {{ product.category.name|default:'Uncategorized' }}</span></td>
+<td data-label="Price" class="amount">₱{{ product.selling_price|floatformat:"2g" }}</td>
+<td data-label="Next expiry">{{ product.next_expiry.expiry_date|date:'d M Y'|default:'—' }}</td>
+<td data-label="Status">
+<span class="status {{ product.display_status }}">{{ product.display_label }}</span>
+</td>
+</tr>{% empty %}<tr>
+<td colspan="6" class="empty-cell">
+<h3>No paninda found.</h3>
+<p>Add your first product or adjust the filters.</p>
+<a class="button primary" href="{% url 'inventory:product_create' %}">Add product</a>
+</td>
+</tr>{% endfor %}</tbody>
+</table>
+<p class="field-help table-note">Expired batches stay in the stock record and are excluded from POS.</p>
+</section>{% endblock %}

@@ -1,178 +1,31 @@
-{% extends 'base.html' %}
-{% load static %}
-
-{% block title %}Register Customer Account • {{ global_store_profile.store_name }}{% endblock %}
-
-{% block extra_head %}
-<link rel="stylesheet" href="{% static 'css/customers/customers.css' %}">
-{% endblock %}
-
-{% block page_heading %}Register Customer Account{% endblock %}
-{% block page_subheading %}Open a new customer ledger line in the store book{% endblock %}
-
-{% block content %}
-<div class="container-form-focus space-y-6">
-  <!-- Top Nav -->
-  <section class="anim-fade-up anim-delay-1">
-    <a href="{% url 'customers:customer_list' %}" class="btn btn-secondary">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
-      <span>Back to Utang Ledger</span>
-    </a>
-  </section>
-
-  <!-- Form Container -->
-  <section class="card-white p-5 anim-fade-up anim-delay-2">
-    <div class="card-header-clean">
-      <div>
-        <h1 class="page-title" style="font-size: 20px;">New Customer Account</h1>
-        <p class="page-subtitle">Fill in customer personal and credit boundary details</p>
-      </div>
-      <span class="badge badge-settled">New Ledger Sheet</span>
-    </div>
-
-    <form method="POST" action="" onsubmit="showToast('Customer account registered to ledger!', 'check');">
-      {% csrf_token %}
-
-      <!-- Customer Full Name -->
-      <div class="form-group">
-        <label for="id_customer_name" class="form-label">
-          Customer Full Name <span class="text-required">*</span>
-        </label>
-        <div class="input-wrapper">
-          <span class="input-leading-icon">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-          </span>
-          <input 
-            type="text" 
-            id="id_customer_name" 
-            name="name" 
-            class="form-control" 
-            placeholder="e.g. Dennis Cruz" 
-            required 
-            autofocus
-          >
-        </div>
-        <p class="form-helper">Official full name or family head registered in the barangay.</p>
-      </div>
-
-      <!-- Nickname & Phone -->
-      <div class="form-grid-2">
-        <div class="form-group">
-          <label for="id_nickname" class="form-label">Nickname / Known As</label>
-          <input 
-            type="text" 
-            id="id_nickname" 
-            name="nickname" 
-            class="form-control" 
-            placeholder="e.g. Kuya Dennis"
-          >
-        </div>
-
-        <div class="form-group">
-          <label for="id_phone" class="form-label">Phone Number / GCash</label>
-          <div class="input-wrapper">
-            <span class="input-leading-icon">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
-            </span>
-            <input 
-              type="text" 
-              id="id_phone" 
-              name="phone" 
-              class="form-control" 
-              placeholder="e.g. 0918-234-5678"
-            >
-          </div>
-        </div>
-      </div>
-
-      <!-- Address / Purok -->
-      <div class="form-group">
-        <label for="id_address" class="form-label">Purok Address / Location Landmark</label>
-        <div class="input-wrapper">
-          <span class="input-leading-icon">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-          </span>
-          <input 
-            type="text" 
-            id="id_address" 
-            name="address" 
-            class="form-control" 
-            placeholder="e.g. Purok 1, near Basketball Court"
-          >
-        </div>
-      </div>
-
-      <!-- Max Credit Limit -->
-      <div class="form-group">
-        <label for="id_credit_limit" class="form-label">Maximum Credit Limit (₱)</label>
-        <div class="input-wrapper">
-          <span class="input-leading-icon" style="font-family: var(--font-serif); font-weight: 700; font-size: 15px;">₱</span>
-          <input 
-            type="number" 
-            step="50" 
-            id="id_credit_limit" 
-            name="credit_limit" 
-            class="form-control" 
-            value="1000.00"
-          >
-        </div>
-        <p class="form-helper">Max utang threshold allowed before stopping credit sales.</p>
-        <!-- Quick Preset Pills -->
-        <div style="display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap;">
-          <button type="button" class="btn btn-secondary btn-sm" style="padding: 2px 8px; font-size: 11px;" onclick="document.getElementById('id_credit_limit').value='500.00';">₱500</button>
-          <button type="button" class="btn btn-secondary btn-sm" style="padding: 2px 8px; font-size: 11px;" onclick="document.getElementById('id_credit_limit').value='1000.00';">₱1,000</button>
-          <button type="button" class="btn btn-secondary btn-sm" style="padding: 2px 8px; font-size: 11px;" onclick="document.getElementById('id_credit_limit').value='2000.00';">₱2,000</button>
-          <button type="button" class="btn btn-secondary btn-sm" style="padding: 2px 8px; font-size: 11px;" onclick="document.getElementById('id_credit_limit').value='5000.00';">₱5,000</button>
-        </div>
-      </div>
-
-      <!-- Existing Initial Utang Section -->
-      <div style="margin-top: 20px; padding: 18px; background-color: var(--color-canvas-bg); border: 1px solid var(--color-border-main); border-radius: var(--radius-control);">
-        <div style="font-family: var(--font-serif); font-size: 15px; font-weight: 700; color: var(--color-ink-primary); margin-bottom: 4px;">
-          Starting Utang Balance (Optional)
-        </div>
-        <p style="font-size: 12px; color: var(--color-ink-muted); margin-bottom: 14px;">
-          If this customer has an existing unpaid balance from a paper notebook, enter it below.
-        </p>
-
-        <div class="form-grid-2">
-          <div class="form-group" style="margin-bottom: 0;">
-            <label for="id_initial_balance" class="form-label">Initial Amount (₱)</label>
-            <div class="input-wrapper">
-              <span class="input-leading-icon" style="font-family: var(--font-serif); font-weight: 700; font-size: 15px;">₱</span>
-              <input 
-                type="number" 
-                step="0.01" 
-                id="id_initial_balance" 
-                name="initial_balance" 
-                class="form-control" 
-                placeholder="0.00"
-              >
-            </div>
-          </div>
-
-          <div class="form-group" style="margin-bottom: 0;">
-            <label for="id_initial_summary" class="form-label">Items Description</label>
-            <input 
-              type="text" 
-              id="id_initial_summary" 
-              name="initial_summary" 
-              class="form-control" 
-              placeholder="e.g. Old notebook balance"
-            >
-          </div>
-        </div>
-      </div>
-
-      <!-- Submit CTA Button -->
-      <div style="margin-top: 24px; display: flex; justify-content: flex-end; gap: 12px;">
-        <a href="{% url 'customers:customer_list' %}" class="btn btn-secondary">Cancel</a>
-        <button type="submit" class="btn btn-primary btn-lg">
-          <span>Register Customer & Save Ledger</span>
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-        </button>
-      </div>
-    </form>
-  </section>
+{% extends 'base.html' %}{% block title %}Add customer · TindaHan Ledger{% endblock %}{% block content %}
+<a class="back-link" href="{% url 'customers:customer_list' %}">← Customer directory</a>
+<div class="page-heading">
+<div>
+<h1>Add a customer</h1>
+<p class="muted">Save the details you need to keep a clear suki record.</p>
 </div>
-{% endblock %}
+</div>
+<div class="content-and-aside">
+<form class="paper-section" method="post">{% csrf_token %}{{ form.non_field_errors }}<div class="section-heading">
+<h2>Customer details</h2>
+</div>
+<div class="form-grid">{% include 'components/field.html' with field=form.name %}{% include 'components/field.html' with field=form.nickname %}{% include 'components/field.html' with field=form.phone %}{% include 'components/field.html' with field=form.credit_limit %}</div><div class="full-field">{% include 'components/field.html' with field=form.address %}</div>
+<div class="divider">
+</div>
+<div class="section-heading">
+<h2>Opening balance</h2>
+</div>
+<div class="form-grid">{% include 'components/field.html' with field=form.initial_balance %}{% include 'components/field.html' with field=form.initial_summary %}</div><div class="full-field">{% include 'components/field.html' with field=form.notes %}</div>
+<div class="form-actions">
+<button class="button primary" type="submit">Save customer</button>
+<a class="button" href="{% url 'customers:customer_list' %}">Cancel</a>
+</div>
+</form>
+<aside class="paper-section guidance dark-surface">{% include 'components/icon.html' with name='imgIconNotebook' size=32 %}<h2>Start with the right balance</h2>
+<p>Use an opening balance for an existing utang. New product purchases belong in Point of sale.</p>
+<div class="divider">
+</div>
+<p>A credit limit helps you see how much more a suki can borrow.</p>
+</aside>
+</div>{% endblock %}

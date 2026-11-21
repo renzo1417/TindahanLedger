@@ -1,0 +1,66 @@
+{% extends 'base.html' %}{% load ledger_ui %}{% block title %}{{ product.name }} · Inventory{% endblock %}{% block content %}
+<a class="back-link" href="{% url 'inventory:inventory_list' %}">← Inventory</a>
+<div class="page-heading">
+<div>
+<h1>{{ product.name }}</h1>
+<p class="muted">{{ product.category.name|default:'Uncategorized' }}{% if product.sku %} · SKU {{ product.sku }}{% endif %}</p>
+</div>
+<button class="button primary" id="restock" type="button" data-modal="restock-dialog">Restock product</button>
+</div>
+<section class="summary-strip product-position"><span class="product-hero-art">{% include 'components/icon.html' with name=product.unit|product_artwork size=80 height=97 %}</span>
+<div>
+<span>On hand</span>
+<strong>{{ product.stock_quantity }} {{ product.unit }}</strong>
+<small>Across {{ product.active_batches_count }} batch{{ product.active_batches_count|pluralize:'es' }}</small>
+</div>
+<div>
+<span>Selling price</span>
+<strong>₱{{ product.selling_price|floatformat:"2g" }}</strong>
+<small>Recorded cost ₱{{ product.cost_price|floatformat:"2g" }} each</small>
+</div>
+<div>
+<span>Next expiry</span>
+<strong>{% if next_batch %}{% if next_batch.days_left < 0 %}Expired{% else %}{{ next_batch.days_left }} days{% endif %}{% else %}—{% endif %}</strong>
+<small>{% if next_batch %}{{ next_batch.quantity }} {{ product.unit }} · {{ next_batch.expiry_date|date:'d M Y' }}{% else %}No dated stock on hand{% endif %}</small>
+</div>
+</section>
+<section class="paper-section">
+<div class="section-heading">
+<h2>Batch record</h2>
+<a href="{% url 'expiry' %}">Expiry tracker →</a>
+</div>{% for batch in batches %}<article class="batch-record">
+<div class="record-row">
+<div class="record-copy">
+<strong>{{ batch.batch_code }}</strong>
+<small>{{ batch.quantity }} {{ product.unit }} remaining · Cost ₱{{ batch.cost_price|floatformat:"2g" }} each</small>
+<small>{% if batch.expiry_date %}Expires {{ batch.expiry_date|date:'d M Y' }}{% else %}No expiry date recorded{% endif %}{% if batch.shelf_location %} · {{ batch.shelf_location }}{% endif %}</small>
+</div>
+<span class="status {{ batch.display_status }}">{{ batch.display_label }}</span>
+</div>{% if batch.disposed_at %}<p class="batch-note">{{ batch.disposed_quantity }} units disposed {{ batch.disposed_at|date:'d M Y' }} · Recorded loss ₱{{ batch.capital_loss|floatformat:"2g" }}</p>{% elif batch.quantity > 0 %}<details class="batch-tools"><summary>Correct expiry or dispose stock →</summary>{% include 'components/batch_actions.html' %}</details>{% endif %}</article>{% empty %}<div class="empty-state">
+<h3>No batches yet.</h3>
+<p>Restock this product to make it available in POS.</p>
+<button type="button" class="button primary" data-modal="restock-dialog">Restock product</button>
+</div>{% endfor %}</section>
+<section class="paper-section">
+<div class="section-heading">
+<h2>Prices & details</h2>
+</div>
+<form method="post">{% csrf_token %}{% include 'components/form_fields.html' %}<p class="field-help table-note">Price changes apply to future sales. Existing sale records keep their original batch costs.</p>
+<div class="form-actions">
+<button class="button primary" type="submit">Save product details</button>
+</div>
+</form>
+</section>
+<dialog id="restock-dialog" class="app-dialog" aria-labelledby="restock-title" {% if restock_form.errors %}data-auto-open{% endif %}>
+<div class="dialog-header">
+<h2 id="restock-title">Restock product</h2>
+<button type="button" data-close-dialog>Close</button>
+</div>
+<p class="muted">{{ product.name }} · {{ product.stock_quantity }} {{ product.unit }} on hand</p>
+<form method="post" action="{% url 'inventory:restock' product.pk %}">{% csrf_token %}{% include 'components/form_fields.html' with form=restock_form %}<p class="field-help table-note">A separate batch keeps its arrival date, cost, and printed expiry together.</p>
+<div class="form-actions">
+<button class="button primary" type="submit">Save stock batch</button>
+<button class="button" type="button" data-close-dialog>Cancel</button>
+</div>
+</form>
+</dialog>{% endblock %}

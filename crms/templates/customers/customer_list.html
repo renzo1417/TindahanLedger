@@ -1,168 +1,72 @@
-{% extends 'base.html' %}
-{% load static %}
-
-{% block title %}Utang Ledger Directory • {{ global_store_profile.store_name }}{% endblock %}
-
-{% block extra_head %}
-<link rel="stylesheet" href="{% static 'css/customers/customers.css' %}">
-{% endblock %}
-
-{% block page_heading %}Utang Ledger (Customer Directory){% endblock %}
-{% block page_subheading %}Active credit accounts, running balances, and payment schedules{% endblock %}
-
-{% block content %}
-<div class="container-app-fluid space-y-6">
-  <!-- Screen Header -->
-  <section class="section-header anim-fade-up anim-delay-1">
-    <div>
-      <h1 class="page-title">Utang Ledger</h1>
-      <p class="page-subtitle">Total Outstanding Utang: <strong style="color: var(--color-ink-primary);">₱{{ total_utang_balance|floatformat:2 }}</strong> across {{ total_customers_count }} registered customers</p>
-    </div>
-    <div class="header-actions">
-      <button type="button" class="btn btn-secondary" onclick="openModal('log-bayad-modal')">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-        <span>Log Bayad</span>
-      </button>
-      <button type="button" class="btn btn-secondary" onclick="openModal('log-utang-modal')">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary-orange)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
-        <span>Log Utang</span>
-      </button>
-      <a href="{% url 'customers:customer_create' %}" class="btn btn-primary">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-        <span>Add Customer</span>
-      </a>
-    </div>
-  </section>
-
-  <!-- 3 Customer & Credit KPI Cards -->
-  <section class="kpi-grid anim-fade-up anim-delay-1" style="grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));">
-    <!-- Card 1: Kabuuang Pautang -->
-    <div class="kpi-card">
-      <div class="kpi-header">
-        <span class="kpi-label">Kabuuang Pautang</span>
-        <span class="badge badge-active-outline">Kredito</span>
-      </div>
-      <div class="kpi-body">
-        <div class="kpi-value" style="font-family: var(--font-mono); font-size: 26px;">₱{{ total_utang_balance|floatformat:2 }}</div>
-        <p class="kpi-subtext">Across {{ total_customers_count }} registered suki accounts</p>
-      </div>
-    </div>
-
-    <!-- Card 2: Overdue Accounts -->
-    <a href="?filter=overdue" class="kpi-card kpi-card-alert" style="text-decoration: none; color: inherit;">
-      <div class="kpi-header">
-        <span class="kpi-label">Overdue (>14 Araw)</span>
-        <span class="badge badge-overdue-solid">{{ overdue_count }} Suki</span>
-      </div>
-      <div class="kpi-body">
-        <div class="kpi-value" style="font-family: var(--font-mono); font-size: 26px; color: var(--color-primary-orange);">{{ overdue_count }} suki</div>
-        <p class="kpi-subtext" style="color: var(--color-primary-orange);">Kailangang paalalahanan sa bayad</p>
-      </div>
-    </a>
-
-    <!-- Card 3: Aktibong Nagbabayad & Reports -->
-    <a href="{% url 'reports:index' %}" class="kpi-card" style="text-decoration: none; color: inherit;">
-      <div class="kpi-header">
-        <span class="kpi-label">Katayuan ng Singilin</span>
-        <span class="badge badge-settled">Aging Reports</span>
-      </div>
-      <div class="kpi-body">
-        <div class="kpi-value" style="font-family: var(--font-mono); font-size: 26px;">{{ active_count }} Aktibo</div>
-        <p class="kpi-subtext" style="display: flex; align-items: center; gap: 4px;">
-          <span>Tingnan ang buong pagsusuri</span>
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-        </p>
-      </div>
-    </a>
-  </section>
-
-  <!-- Filter & Search Band -->
-  <section class="filter-bar anim-fade-up anim-delay-2">
-    <!-- Segmented Status Tabs -->
-    <div class="segmented-control">
-      <a href="?filter=all{% if search_query %}&q={{ search_query|urlencode }}{% endif %}" class="segment-tab {% if selected_filter == 'all' %}active{% endif %}">
-        All ({{ total_customers_count }})
-      </a>
-      <a href="?filter=overdue{% if search_query %}&q={{ search_query|urlencode }}{% endif %}" class="segment-tab {% if selected_filter == 'overdue' %}active{% endif %}">
-        Overdue ({{ overdue_count }})
-      </a>
-      <a href="?filter=active{% if search_query %}&q={{ search_query|urlencode }}{% endif %}" class="segment-tab {% if selected_filter == 'active' %}active{% endif %}">
-        Active Utang ({{ active_count }})
-      </a>
-      <a href="?filter=settled{% if search_query %}&q={{ search_query|urlencode }}{% endif %}" class="segment-tab {% if selected_filter == 'settled' %}active{% endif %}">
-        Settled ({{ settled_count }})
-      </a>
-    </div>
-
-    <!-- Search Box -->
-    <form method="GET" action="" style="display: flex; gap: 8px; flex: 1; max-width: 360px;">
-      <input type="hidden" name="filter" value="{{ selected_filter }}">
-      <div class="input-wrapper" style="flex: 1;">
-        <span class="input-leading-icon">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-        </span>
-        <input 
-          type="text" 
-          name="q" 
-          class="form-control" 
-          style="min-height: 38px; padding-top: 6px; padding-bottom: 6px;"
-          placeholder="Filter by name, nickname, phone..." 
-          value="{{ search_query }}"
-        >
-      </div>
-      {% if search_query %}
-      <a href="?filter={{ selected_filter|urlencode }}" class="btn btn-secondary btn-sm" style="min-height: 38px;">Reset</a>
-      {% endif %}
-    </form>
-  </section>
-
-  <!-- Customer Ledger Rows List -->
-  <section class="anim-fade-up anim-delay-3">
-    {% for customer in customers %}
-    <a href="{% url 'customers:customer_detail' customer.id %}" class="ledger-row {% if customer.status == 'overdue' %}ledger-row-overdue{% endif %}">
-      <div class="ledger-left">
-        <div class="avatar-badge {% if customer.status == 'overdue' %}avatar-badge-alert{% endif %}">{{ customer.avatar_letter }}</div>
-        <div>
-          <div class="ledger-name-row">
-            <h3 class="ledger-title">{{ customer.name }}</h3>
-            {% if customer.nickname %}
-              <span class="tag-nickname">({{ customer.nickname }})</span>
-            {% endif %}
-            
-            {% if customer.status == 'overdue' %}
-              <span class="badge badge-overdue-solid">{{ customer.status_label }}</span>
-            {% elif customer.status == 'active' %}
-              <span class="badge badge-active-outline">{{ customer.status_label }}</span>
-            {% else %}
-              <span class="badge badge-settled">{{ customer.status_label }}</span>
-            {% endif %}
-          </div>
-          <p class="ledger-meta">
-            {{ customer.address }} • Last payment: {{ customer.last_payment_date }} • Due: {{ customer.due_date }}
-          </p>
-        </div>
-      </div>
-
-      <div class="ledger-right">
-        <div class="ledger-amount" {% if customer.status == 'overdue' %}style="color: var(--color-primary-orange);"{% endif %}>
-          ₱{{ customer.running_balance|floatformat:2 }}
-        </div>
-        <span class="ledger-subtext">Credit Limit: ₱{{ customer.credit_limit|floatformat:2 }}</span>
-      </div>
-    </a>
-    {% empty %}
-    <div class="empty-state-card">
-      <div class="empty-state-icon-wrapper">
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-      </div>
-      <h2 class="empty-state-title">No customers match your filter</h2>
-      <p class="empty-state-desc">Try clearing your search keyword or switching between the status tabs.</p>
-      <a href="{% url 'customers:customer_create' %}" class="btn btn-primary">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-        <span>Register New Customer</span>
-      </a>
-    </div>
-    {% endfor %}
-  </section>
+{% extends 'base.html' %}{% load ledger_ui %}
+{% block title %}Utang ledger · TindaHan Ledger{% endblock %}{% block content %}
+<div class="page-heading">
+<div>
+<h1>Utang ledger</h1>
+<p class="muted">Every suki, every balance, one clear talaan.</p>
 </div>
-{% endblock %}
+<a class="button primary" href="{% url 'customers:customer_create' %}">Add customer</a>
+</div>
+<div class="two-columns">
+<section class="metric-card brand-surface">
+<span>To collect</span>
+<strong>₱{{ total_balance|floatformat:"2g" }}</strong>
+<small>Across {{ customer_count }} suki account{{ customer_count|pluralize }}</small>
+</section>
+<section class="metric-card dark-surface">
+<span>Overdue accounts</span>
+<strong>{{ overdue_count }}</strong>
+<small>Follow up on balances past their due date</small>
+</section>
+</div>
+<form class="filter-bar" method="get">
+<label class="sr-only" for="customer-search">Search customers</label>
+<input id="customer-search" name="q" type="search" value="{{ search_query }}" placeholder="Name, nickname or phone">
+<input type="hidden" name="filter" value="{{ selected_filter }}">
+<button class="button" type="submit">Search</button>
+</form>
+<nav class="filter-tabs" aria-label="Customer status">
+<a href="?filter=all&q={{ search_query|urlencode }}" {% if selected_filter == 'all' %}aria-current="page"{% endif %}>All suki · {{ customer_count }}</a>
+<a href="?filter=owing&q={{ search_query|urlencode }}" {% if selected_filter == 'owing' or selected_filter == 'active' %}aria-current="page"{% endif %}>May utang · {{ owing_count }}</a>
+<a href="?filter=overdue&q={{ search_query|urlencode }}" {% if selected_filter == 'overdue' %}aria-current="page"{% endif %}>Overdue · {{ overdue_count }}</a>
+<a href="?filter=settled&q={{ search_query|urlencode }}" {% if selected_filter == 'settled' %}aria-current="page"{% endif %}>Settled</a>
+</nav>
+<section class="paper-section">
+<div class="section-heading">
+<h2>Customer directory</h2>
+<a href="{% url 'customers:entry_form' %}?kind=bayad">Record payment →</a>
+</div>
+<table class="responsive-table customer-table">
+<thead>
+<tr>
+<th>Customer</th>
+<th>Phone</th>
+<th>Due date</th>
+<th>Balance</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>{% for customer in customers %}<tr>
+<td>
+<a class="record-link customer-identity" href="{% url 'customers:customer_detail' customer.pk %}">
+
+<span>
+<strong>{{ customer.name }}</strong>{% if customer.nickname %}<small>{{ customer.nickname }}</small>{% endif %}</span>
+</a>
+</td>
+<td data-label="Phone">{{ customer.phone|default:'Not saved' }}</td>
+<td data-label="Due date">{{ customer.due_date|date:'d M Y'|default:'Not set' }}</td>
+<td data-label="Balance" class="amount">₱{{ customer.running_balance|floatformat:"2g" }}</td>
+<td data-label="Status">
+<span class="status {{ customer.status }}">{{ customer.status_label }}</span>
+</td>
+</tr>{% empty %}<tr>
+<td colspan="5" class="empty-cell">
+<h3>{% if search_query or selected_filter != 'all' %}No customers match.{% else %}A clear start for every suki.{% endif %}</h3>
+<p>Add a customer or adjust your filters to see their records here.</p>
+<a class="button primary" href="{% url 'customers:customer_create' %}">Add customer</a>
+</td>
+</tr>{% endfor %}</tbody>
+</table>
+<p class="field-help table-note">Balances update after every saved utang entry and payment.</p>
+</section>{% endblock %}

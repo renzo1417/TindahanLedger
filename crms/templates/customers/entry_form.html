@@ -1,0 +1,34 @@
+{% extends 'base.html' %}{% block title %}Ledger entry · TindaHan Ledger{% endblock %}{% block content %}
+<a class="back-link" href="{% if customer %}{% url 'customers:customer_detail' customer.pk %}{% else %}{% url 'customers:customer_list' %}{% endif %}">← {% if customer %}{{ customer.name }}’s ledger{% else %}Utang ledger{% endif %}</a>
+<div class="page-heading">
+<div>
+<h1>{% if form.kind.value == 'bayad' %}Record a payment{% else %}Add a debt adjustment{% endif %}</h1>
+<p class="muted">{% if customer %}{{ customer.name }} · Current balance ₱{{ customer.running_balance|floatformat:"2g" }}{% else %}Choose a customer and save the entry to their ledger.{% endif %}</p>
+</div>
+</div>{% if form.kind.value != 'bayad' %}<p class="notice">
+<strong>For an old balance or a manual entry</strong>
+<br>Product purchases belong in Point of sale.</p>{% endif %}
+<div class="content-and-aside">
+<form id="ledger-entry-form" class="paper-section" action="{% url 'customers:entry' %}" method="post" data-kind="{{ form.kind.value }}">{% csrf_token %}{{ form.non_field_errors }}{{ form.kind }}<div class="section-heading">
+<h2>{% if form.kind.value == 'bayad' %}Payment details{% else %}Adjustment details{% endif %}</h2>
+</div>
+<div class="field">
+<label for="entry-customer">Customer</label>
+<select id="entry-customer" name="customer_id" required>
+<option value="">Choose a customer</option>{% for item in customers %}<option value="{{ item.pk }}" data-balance="{{ item.running_balance }}" data-limit="{{ item.credit_limit }}" {% if form.customer_id.value|stringformat:'s' == item.pk|stringformat:'s' %}selected{% endif %}>{{ item.name }} · ₱{{ item.running_balance|floatformat:"2g" }}</option>{% endfor %}</select>{{ form.customer_id.errors }}</div>
+<div class="entry-fields">{% include 'components/field.html' with field=form.amount %}{% if form.kind.value == 'bayad' %}{% include 'components/field.html' with field=form.payment_mode %}{% else %}{% include 'components/field.html' with field=form.due_date %}{% include 'components/field.html' with field=form.summary %}{% endif %}{% include 'components/field.html' with field=form.notes %}</div>
+<p class="field-help table-note">{% if form.kind.value == 'bayad' %}The amount cannot exceed the outstanding balance.{% else %}This adjustment is not counted as a product sale.{% endif %}</p>
+<div class="form-actions">
+<button class="button primary" type="submit">{% if form.kind.value == 'bayad' %}Save payment{% else %}Save adjustment{% endif %}</button>
+<a class="button" href="{% url 'customers:customer_list' %}">Cancel</a>
+</div>
+</form>
+<aside class="paper-section guidance {% if form.kind.value == 'bayad' %}brand-surface{% else %}dark-surface{% endif %}">
+<h2>{% if form.kind.value == 'bayad' %}After this payment{% else %}New balance after saving{% endif %}</h2>
+<div class="aside-total">
+<strong id="entry-preview">—</strong>
+<small id="entry-preview-note">Choose a customer and enter an amount.</small>
+</div>
+<p>The balance updates when the entry is saved.</p>
+</aside>
+</div>{% endblock %}
