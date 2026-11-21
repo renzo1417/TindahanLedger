@@ -6,6 +6,9 @@ Vertical slice: apps.register
 from django.shortcuts import render, redirect
 from django.contrib.auth.models import User
 from django.contrib import messages
+from django.db import transaction
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError
 
 
 def register_view(request):
@@ -27,8 +30,6 @@ def register_view(request):
             "store_name": store_name,
             "owner_name": owner_name,
             "phone": phone,
-            "password": password,
-            "confirm_password": confirm_password,
         }
 
         has_errors = False
@@ -54,6 +55,17 @@ def register_view(request):
             field_errors["password"] = "Password must be at least 8 characters long."
             has_errors = True
 
+        if password:
+            try:
+                validate_password(password, User(username=phone, first_name=owner_name))
+            except ValidationError as error:
+                field_errors['password'] = ' '.join(error.messages)
+                has_errors = True
+        for key, value, limit in [('store_name', store_name, 200), ('owner_name', owner_name, 150), ('phone', phone, 20)]:
+            if len(value) > limit:
+                field_errors[key] = f'Use no more than {limit} characters.'
+                has_errors = True
+
         if password and confirm_password and password != confirm_password:
             field_errors["confirm_password"] = "Passwords do not match."
             has_errors = True
@@ -71,19 +83,10 @@ def register_view(request):
         first_name = name_parts[0]
         last_name = name_parts[1] if len(name_parts) > 1 else ""
 
-        user = User.objects.create_user(
-            username=phone,
-            password=password,
-            first_name=first_name,
-            last_name=last_name,
-        )
-
-        from apps.home.models import Store
-        Store.objects.filter(user_id=user.id).update(
-            store_name=store_name,
-            owner_name=owner_name,
-            phone_number=phone,
-        )
+        with transaction.atomic():
+            user = User.objects.create_user(username=phone, password=password, first_name=first_name, last_name=last_name)
+            from apps.home.models import Store
+            Store.objects.filter(user__auth_user=user).update(store_name=store_name, owner_name=owner_name, phone_number=phone)
 
         request.session["registered_phone"] = phone
         request.session["store_name"] = store_name

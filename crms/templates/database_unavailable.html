@@ -1,0 +1,21 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Connection unavailable · TindaHan Ledger</title>
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+  <link rel="stylesheet" href="{% static 'css/workspace.css' %}">
+</head>
+<body>
+<div class="workspace">
+  <main class="connection-error">
+    <span class="brand-mark">t.</span>
+    <h1>We couldn’t reach your ledger</h1>
+    <p class="muted">Your request could not be completed. Check your connection and try again.</p>
+    <p class="field-help">If a sale was interrupted, return to the basket and retry it once the connection is restored.</p>
+    <a class="button primary" href="">Try again</a>
+  </main>
+</div>
+</body>
+</html>

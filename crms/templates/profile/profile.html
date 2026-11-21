@@ -1,256 +1,44 @@
-{% extends 'base.html' %}
-{% load static %}
-
-{% block title %}Store Profile — {{ profile.store_name }}{% endblock %}
-
-{% block extra_head %}
-<link rel="stylesheet" href="{% static 'css/profile/profile.css' %}">
-{% endblock %}
-
-{% block page_heading %}Store & Owner Profile{% endblock %}
-{% block page_subheading %}{{ profile.store_name }} • {{ profile.store_role }}{% endblock %}
-
-{% block content %}
-<div class="container-app-fluid space-y-6">
-  <!-- Profile Hero Banner -->
-  <section class="profile-hero anim-fade-up anim-delay-1">
-    <div class="profile-hero-content">
-      <div class="profile-avatar-wrapper">
-        <div id="hero-avatar-initial" class="profile-avatar-large">{{ profile.avatar_initial }}</div>
-        <button type="button" class="profile-avatar-edit-badge" title="Change Avatar" onclick="showToast('Avatar upload available in next version.', 'info')">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
-        </button>
-      </div>
-
-      <div class="profile-identity">
-        <div class="profile-title-row">
-          <h1 id="hero-store-title" class="profile-store-title">{{ profile.store_name }}</h1>
-          <span class="badge badge-success" style="gap: 4px;">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-            <span>Verified Sari-Sari Store</span>
-          </span>
-        </div>
-        <p class="profile-owner-sub">Owner: <strong id="hero-owner-name">{{ profile.owner_name }}</strong> • {{ profile.member_since }}</p>
-        <p class="profile-address-sub">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-          <span id="hero-address-text">{{ profile.address }}</span>
-        </p>
-      </div>
-    </div>
-
-    <!-- Quick Stats Metric Strip -->
-    <div class="profile-stats-strip">
-      <div class="profile-stat-box">
-        <span class="stat-box-label">Active Customers</span>
-        <span class="stat-box-value">{{ profile.active_customers }}</span>
-      </div>
-      <div class="profile-stat-box">
-        <span class="stat-box-label">Active Utang Balance</span>
-        <span class="stat-box-value text-alert">₱{{ profile.total_active_utang|floatformat:2 }}</span>
-      </div>
-      <div class="profile-stat-box">
-        <span class="stat-box-label">Settled Ledgers</span>
-        <span class="stat-box-value">{{ profile.settled_accounts }}</span>
-      </div>
-      <div class="profile-stat-box">
-        <span class="stat-box-label">Store Health Rating</span>
-        <span class="stat-box-value" style="color: var(--color-status-success-text);">{{ profile.store_rating }}</span>
-      </div>
-    </div>
-  </section>
-
-  <!-- Profile Grid Details -->
-  <section class="profile-grid">
-    <!-- Left Column: Business & Store Details Form -->
-    <div class="card-white p-5 anim-fade-up anim-delay-2">
-      <div class="card-header-clean">
-        <div>
-          <h2 class="section-title">Store Business Information</h2>
-          <p style="font-size: 12px; color: var(--color-ink-muted);">Public store identity and official trade details</p>
-        </div>
-        <button type="button" id="toggle-edit-btn" class="btn btn-secondary btn-sm" onclick="toggleProfileEdit()">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
-          <span id="toggle-edit-label">Edit Details</span>
-        </button>
-      </div>
-
-      <form id="profile-details-form" class="profile-form is-locked" onsubmit="event.preventDefault(); saveProfileForm();">
-        {% csrf_token %}
-        <div class="form-grid-2">
-          <div class="form-group">
-            <label class="form-label" for="id_profile_store_name">Store Business Name <span class="text-required">*</span></label>
-            <input type="text" id="id_profile_store_name" class="form-control" value="{{ profile.store_name }}" disabled required>
-          </div>
-          <div class="form-group">
-            <label class="form-label" for="id_profile_owner_name">Store Owner Full Name <span class="text-required">*</span></label>
-            <input type="text" id="id_profile_owner_name" class="form-control" value="{{ profile.owner_name }}" disabled required>
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label" for="id_profile_category">Business Classification</label>
-          <input type="text" id="id_profile_category" class="form-control" value="{{ profile.business_category }}" readonly>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label" for="id_profile_address">Street Address & Barangay <span class="text-required">*</span></label>
-          <input type="text" id="id_profile_address" class="form-control" value="{{ profile.address }}" disabled required>
-        </div>
-
-        <div class="form-grid-2">
-          <div class="form-group">
-            <label class="form-label" for="id_profile_city">City / Municipality</label>
-            <input type="text" id="id_profile_city" class="form-control" value="{{ profile.city }}" disabled>
-          </div>
-          <div class="form-group">
-            <label class="form-label" for="id_profile_hours">Operating Schedule</label>
-            <input type="text" id="id_profile_hours" class="form-control" value="{{ profile.operating_hours }}" disabled>
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label" for="id_profile_ledger_vol">Active Ledger Identification</label>
-          <input type="text" id="id_profile_ledger_vol" class="form-control font-mono" value="{{ profile.ledger_volume }}" readonly>
-        </div>
-
-        <div class="profile-form-footer">
-          <button type="submit" id="save-profile-btn" class="btn btn-primary" disabled>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-            <span>Save Profile Updates</span>
-          </button>
-        </div>
-      </form>
-
-      <!-- Live Store Receipt Header Preview -->
-      <div class="receipt-preview-card" aria-label="Live store receipt header preview">
-        <div class="receipt-preview-top">
-          <span class="receipt-preview-tag">Customer Receipt Header Preview</span>
-          <button type="button" class="btn btn-secondary btn-sm" style="font-size: 11px; padding: 4px 10px;" onclick="window.print()">Print Counter Slip</button>
-        </div>
-        <div class="receipt-paper-box">
-          <h3 id="receipt-store-name" class="receipt-paper-store">{{ profile.store_name }}</h3>
-          <div id="receipt-address" class="receipt-paper-line">{{ profile.address }}</div>
-          <div id="receipt-hours" class="receipt-paper-line">Bukas: {{ profile.operating_hours }}</div>
-          <div class="receipt-paper-divider"></div>
-          <div class="receipt-paper-row">
-            <span>Nag-asikaso: <strong id="receipt-owner">{{ profile.owner_name }}</strong></span>
-            <span>{{ profile.ledger_volume }}</span>
-          </div>
-          <div class="receipt-paper-row">
-            <span>GCash Bayad: {{ profile.gcash_number }}</span>
-            <span>Tel: {{ profile.phone_number }}</span>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Right Column: Contact, Payment & Device Credentials -->
-    <div class="space-y-6">
-      <!-- Contact & Payment Methods -->
-      <div class="card-white p-5 anim-fade-up anim-delay-3">
-        <div class="card-header-clean">
-          <div>
-            <h2 class="section-title">Contact & GCash QR</h2>
-            <p style="font-size: 12px; color: var(--color-ink-muted);">Payment info shown to customers on receipts</p>
-          </div>
-        </div>
-
-        <div class="contact-list">
-          <div class="contact-item">
-            <div class="contact-icon-box">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
-            </div>
-            <div class="contact-meta">
-              <span class="contact-label">Mobile Contact</span>
-              <span class="contact-value">{{ profile.phone_number }}</span>
-            </div>
-            <button type="button" class="btn btn-secondary btn-sm" onclick="copyToClipboard('{{ profile.phone_number }}', 'Phone number copied!')">Copy</button>
-          </div>
-
-          <div class="contact-item">
-            <div class="contact-icon-box" style="background-color: var(--color-orange-subtle-bg); color: var(--color-primary-orange);">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"></rect><line x1="2" y1="10" x2="22" y2="10"></line></svg>
-            </div>
-            <div class="contact-meta">
-              <span class="contact-label">Verified GCash Number</span>
-              <span class="contact-value font-mono">{{ profile.gcash_number }}</span>
-            </div>
-            <button type="button" class="btn btn-secondary btn-sm" onclick="copyToClipboard('{{ profile.gcash_number }}', 'GCash number copied!')">Copy</button>
-          </div>
-
-          <div class="contact-item">
-            <div class="contact-icon-box">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
-            </div>
-            <div class="contact-meta">
-              <span class="contact-label">Email Address</span>
-              <span class="contact-value">{{ profile.email }}</span>
-            </div>
-            <button type="button" class="btn btn-secondary btn-sm" onclick="copyToClipboard('{{ profile.email }}', 'Email copied!')">Copy</button>
-          </div>
-        </div>
-
-        <div class="gcash-card-box">
-          <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px;">
-            <div>
-              <span style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--color-primary-orange);">Quick Pay QR</span>
-              <p style="font-size: 12px; color: var(--color-ink-secondary); margin-top: 2px;">GCash QR counter slip for suki payments</p>
-            </div>
-            <button type="button" id="toggle-qr-btn" class="btn btn-secondary btn-sm" onclick="toggleGcashSlip()">Hide Slip</button>
-          </div>
-
-          <div id="gcash-slip-panel" class="gcash-slip-panel is-open" aria-live="polite">
-            <div class="gcash-qr-frame" aria-hidden="true">
-              <svg width="58" height="58" viewBox="0 0 24 24" fill="none" stroke="#121212" stroke-width="1.6" stroke-linecap="square">
-                <rect x="3" y="3" width="6" height="6"></rect>
-                <rect x="15" y="3" width="6" height="6"></rect>
-                <rect x="3" y="15" width="6" height="6"></rect>
-                <path d="M15 15h2v2h-2zM19 15h2v2h-2zM15 19h2v2h-2zM19 19h2v2h-2zM11 3v6M11 13v8M3 11h18"></path>
-              </svg>
-            </div>
-            <div class="gcash-slip-meta">
-              <strong id="slip-store-name">{{ profile.store_name }}</strong>
-              <span>GCash: {{ profile.gcash_number }}</span>
-              <small>Verified Counter Slip • <span id="slip-owner-name">{{ profile.owner_name }}</span></small>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Device & Security Terminal Status -->
-      <div class="card-white p-5 anim-fade-up anim-delay-4">
-        <div class="card-header-clean">
-          <div>
-            <h2 class="section-title">Terminal & System Data</h2>
-            <p style="font-size: 12px; color: var(--color-ink-muted);">Hardware connection and offline ledger status</p>
-          </div>
-          <span class="badge badge-settled">{{ profile.sync_status }}</span>
-        </div>
-
-        <div class="info-table">
-          <div class="info-row">
-            <span class="info-key">Terminal Serial</span>
-            <span class="info-val font-mono">{{ profile.terminal_id }}</span>
-          </div>
-          <div class="info-row">
-            <span class="info-key">Device Station</span>
-            <span class="info-val">{{ profile.device_name }}</span>
-          </div>
-          <div class="info-row">
-            <span class="info-key">Last Cloud Sync</span>
-            <span class="info-val">{{ profile.last_backup }}</span>
-          </div>
-          <div class="info-row">
-            <span class="info-key">Security Encryption</span>
-            <span class="info-val">AES-256 Local Encrypted</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
+{% extends 'base.html' %}{% block title %}Store profile · TindaHan Ledger{% endblock %}{% block content %}
+<div class="page-heading">
+<div>
+<h1>Store profile</h1>
+<p class="muted">The name and contact details used on receipts and reminders.</p>
 </div>
-{% endblock %}
-
-{% block extra_scripts %}
-<script src="{% static 'js/profile/profile.js' %}"></script>
-{% endblock %}
+</div>
+<div class="store-identity">
+<span class="brand-mark">t.</span>
+<div>
+<h2>{{ store.store_name }}</h2>
+<p>{{ store.business_category|default:'Your tindahan' }}{% if store.city %} · {{ store.city }}{% endif %}</p>
+</div>
+</div>
+<div class="content-and-aside">
+<form method="post" class="paper-section profile-form">{% csrf_token %}<div class="section-heading">
+<h2>Business details</h2>
+</div>{{ form.non_field_errors }}
+<div class="form-grid">
+{% include 'components/field.html' with field=form.store_name %}
+{% include 'components/field.html' with field=form.owner_name %}
+{% include 'components/field.html' with field=form.phone_number %}
+{% include 'components/field.html' with field=form.gcash_number %}
+</div>
+{% include 'components/field.html' with field=form.email %}
+{% include 'components/field.html' with field=form.address %}
+<div class="form-grid">
+{% include 'components/field.html' with field=form.city %}
+{% include 'components/field.html' with field=form.business_category %}
+{% include 'components/field.html' with field=form.operating_hours %}
+{% include 'components/field.html' with field=form.ledger_volume %}
+</div><div class="form-actions">
+<button class="button primary" type="submit">Save store profile</button>
+</div>
+</form>
+<aside class="paper-section profile-guidance">{% include 'components/icon.html' with name='imgTindahanIconStorefront' size=32 %}<h2>A familiar name on every tala</h2>
+<p>These details appear on printed receipts, customer reminders, and the store masthead.</p>
+<div class="divider">
+</div>
+<h3>Operating hours</h3>
+<p>{{ store.operating_hours|default:'Add your operating hours in Business details.' }}</p>
+</aside>
+</div>
+<p class="footer-note">Ledger created {{ store.created_at|date:'d M Y' }}. Contact changes do not change your sign-in username.</p>{% endblock %}

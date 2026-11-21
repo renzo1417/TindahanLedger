@@ -7,6 +7,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.contrib import messages
+from django.utils.http import url_has_allowed_host_and_scheme
 
 
 def login_view(request):
@@ -29,7 +30,7 @@ def login_view(request):
             try:
                 user_obj = User.objects.get(email=identifier)
                 user = authenticate(request, username=user_obj.username, password=password)
-            except User.DoesNotExist:
+            except (User.DoesNotExist, User.MultipleObjectsReturned):
                 user = None
 
         if user is not None:
@@ -38,7 +39,8 @@ def login_view(request):
                 request.session["store_name"] = f"{user.first_name or 'My'}'s Tindahan"
             messages.success(request, f"Welcome back, {user.first_name or user.username}!")
             next_url = request.GET.get("next", "")
-            return redirect(next_url if next_url else "home:home")
+            safe_next = next_url if url_has_allowed_host_and_scheme(next_url, allowed_hosts={request.get_host()}, require_https=request.is_secure()) else ''
+            return redirect(safe_next or 'home:home')
         else:
             messages.error(request, "Invalid credentials. Please check your mobile/email and password.")
 

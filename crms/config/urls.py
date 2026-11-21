@@ -16,6 +16,8 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import include, path
+from apps.home.views import search_view
+from apps.inventory.views import expiry_tracker_view
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -25,7 +27,11 @@ urlpatterns = [
     path('settings/', include('apps.user_settings.urls')),
     path('utang/', include('apps.customers.urls', namespace='customers')),
     path('inventory/', include('apps.inventory.urls', namespace='inventory')),
-    path('reports/', include('apps.reports.urls', namespace='reports')),
+    path('pos/', include('apps.pos.urls')),
+    path('reports/', include('apps.reports.urls')),
+    path('reminders/', include('apps.reminders.urls')),
+    path('expiry/', expiry_tracker_view, name='expiry'),
+    path('search/', search_view, name='search'),
     path('', include('apps.landing.urls')),
     path('', include('apps.home.urls')),
 ]

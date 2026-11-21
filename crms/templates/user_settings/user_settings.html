@@ -1,301 +1,54 @@
-{% extends 'base.html' %}
-{% load static %}
-
-{% block title %}Settings & Preferences — {{ global_store_profile.store_name }}{% endblock %}
-
-{% block extra_head %}
-<link rel="stylesheet" href="{% static 'css/user_settings/user_settings.css' %}">
-{% endblock %}
-
-{% block page_heading %}Store & Ledger Settings{% endblock %}
-{% block page_subheading %}{{ global_store_profile.store_name }} • Configuration & Safety{% endblock %}
-
-{% block content %}
-<div class="container-app-fluid space-y-6">
-  <!-- Screen Header -->
-  <section class="section-header anim-fade-up anim-delay-1">
-    <div>
-      <h1 class="page-title">Store & Ledger Settings</h1>
-      <p class="page-subtitle">Configure store identity, credit limits, inventory alert rules, and backups</p>
-    </div>
-    <div class="header-actions">
-      <button type="button" class="btn btn-secondary" onclick="resetSettingsDefaults()">
-        <span>Reset Defaults</span>
-      </button>
-      <button type="submit" form="settings-form" class="btn btn-primary">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-        <span>Save All Settings</span>
-      </button>
-    </div>
-  </section>
-
-  <!-- Quick-Jump Section Navigation & Unsaved Status -->
-  <nav class="settings-jump-bar anim-fade-up anim-delay-1" aria-label="Settings sections">
-    <div class="settings-jump-links">
-      <a href="#sec-identity" class="settings-jump-link active">Store Identity</a>
-      <a href="#sec-credit" class="settings-jump-link">Utang &amp; Credit Rules</a>
-      <a href="#sec-fifo" class="settings-jump-link">FIFO &amp; Expiry</a>
-      <a href="#sec-notifications" class="settings-jump-link">Paalala &amp; SMS Preview</a>
-      <a href="#sec-backup" class="settings-jump-link">Backup &amp; Export</a>
-    </div>
-    <span id="settings-dirty-pill" class="settings-status-pill" role="status" aria-live="polite">
-      <span class="settings-status-dot" aria-hidden="true"></span>
-      <span id="settings-dirty-text">All rules synced</span>
-    </span>
-  </nav>
-
-  <!-- Master Settings Form -->
-  <form id="settings-form" class="settings-form-layout" onsubmit="event.preventDefault(); saveSettings();">
-    {% csrf_token %}
-
-    <!-- 1. Store Identity & Profile Card -->
-    <div id="sec-identity" class="card-white p-5 anim-fade-up anim-delay-1 settings-section-anchor">
-      <div class="card-header-clean">
-        <div style="display: flex; align-items: center; gap: 10px;">
-          <div class="settings-icon-pill">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
-          </div>
-          <div>
-            <h2 class="section-title">Store Identity & Official Info</h2>
-            <p style="font-size: 12px; color: var(--color-ink-muted);">Appears on printed summaries, masthead, and customer SMS receipts</p>
-          </div>
-        </div>
-      </div>
-
-      <div class="form-grid-2" style="margin-top: 16px;">
-        <div class="form-group">
-          <label class="form-label" for="id_store_name">Store Business Name <span class="text-required">*</span></label>
-          <input type="text" id="id_store_name" name="store_name" class="form-control" value="{{ settings.store_name }}" required>
-        </div>
-        <div class="form-group">
-          <label class="form-label" for="id_owner_name">Store Owner Full Name <span class="text-required">*</span></label>
-          <input type="text" id="id_owner_name" name="owner_name" class="form-control" value="{{ settings.owner_name }}" required>
-        </div>
-      </div>
-
-      <div class="form-grid-2">
-        <div class="form-group">
-          <label class="form-label" for="id_phone_number">Contact Mobile Phone</label>
-          <input type="text" id="id_phone_number" name="phone_number" class="form-control" value="{{ settings.phone_number }}">
-        </div>
-        <div class="form-group">
-          <label class="form-label" for="id_gcash_number">Verified GCash QR Number</label>
-          <input type="text" id="id_gcash_number" name="gcash_number" class="form-control font-mono" value="{{ settings.gcash_number }}">
-        </div>
-      </div>
-
-      <div class="form-grid-2">
-        <div class="form-group">
-          <label class="form-label" for="id_address">Store Location / Barangay</label>
-          <input type="text" id="id_address" name="address" class="form-control" value="{{ settings.address }}">
-        </div>
-        <div class="form-group">
-          <label class="form-label" for="id_ledger_volume">Active Ledger Volume Identifier</label>
-          <input type="text" id="id_ledger_volume" name="ledger_volume" class="form-control font-mono" value="{{ settings.ledger_volume }}">
-        </div>
-      </div>
-    </div>
-
-    <!-- 2-Column Rules Grid -->
-    <div class="grid-dual-column">
-      <!-- 2. Utang Ledger & Credit Rules -->
-      <div id="sec-credit" class="card-white p-5 anim-fade-up anim-delay-2 settings-section-anchor">
-        <div class="card-header-clean">
-          <div style="display: flex; align-items: center; gap: 10px;">
-            <div class="settings-icon-pill">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
-            </div>
-            <div>
-              <h2 class="section-title">Utang & Credit Limits</h2>
-              <p style="font-size: 12px; color: var(--color-ink-muted);">Manage customer debt caps and reminder intervals</p>
-            </div>
-          </div>
-        </div>
-
-        <div style="display: flex; flex-direction: column; gap: 16px; margin-top: 16px;">
-          <div class="form-group">
-            <label class="form-label" for="id_credit_limit">Default New Customer Credit Limit (₱)</label>
-            <input type="number" id="id_credit_limit" name="default_credit_limit" class="form-control font-mono" value="{{ settings.default_credit_limit|floatformat:0 }}" min="500" step="500">
-            <span style="font-size: 11px; color: var(--color-ink-muted); margin-top: 4px; display: block;">Maximum starting utang allowed per neighbor without manual override.</span>
-          </div>
-
-          <div class="form-grid-2">
-            <div class="form-group">
-              <label class="form-label" for="id_grace_days">Grace Period (Days)</label>
-              <input type="number" id="id_grace_days" name="overdue_grace_days" class="form-control font-mono" value="{{ settings.overdue_grace_days }}" min="1" max="30">
-            </div>
-            <div class="form-group">
-              <label class="form-label" for="id_reminder_days">Paalala Threshold (Days)</label>
-              <input type="number" id="id_reminder_days" name="reminder_threshold_days" class="form-control font-mono" value="{{ settings.reminder_threshold_days }}" min="1" max="14">
-            </div>
-          </div>
-
-          <div class="setting-toggle-row">
-            <div>
-              <span class="setting-toggle-title">Strict Limit Enforcement</span>
-              <p class="setting-toggle-sub">Block new utang transactions at POS if customer running balance exceeds credit limit.</p>
-            </div>
-            <label class="switch">
-              <input type="checkbox" name="block_over_limit" {% if settings.block_over_limit %}checked{% endif %}>
-              <span class="slider"></span>
-            </label>
-          </div>
-        </div>
-      </div>
-
-      <!-- 3. Inventory & Expiry Controls -->
-      <div id="sec-fifo" class="card-white p-5 anim-fade-up anim-delay-3 settings-section-anchor">
-        <div class="card-header-clean">
-          <div style="display: flex; align-items: center; gap: 10px;">
-            <div class="settings-icon-pill">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-            </div>
-            <div>
-              <h2 class="section-title">Inventory & FIFO Expiry</h2>
-              <p style="font-size: 12px; color: var(--color-ink-muted);">Automated warnings to prevent stock loss and spoilage</p>
-            </div>
-          </div>
-        </div>
-
-        <div style="display: flex; flex-direction: column; gap: 16px; margin-top: 16px;">
-          <div class="form-group">
-            <label class="form-label" for="id_expiry_window">Expiry Warning Window</label>
-            <select id="id_expiry_window" name="expiry_window_days" class="form-control">
-              <option value="3" {% if settings.expiry_window_days == 3 %}selected{% endif %}>3 Days Before Expiry (Urgent)</option>
-              <option value="7" {% if settings.expiry_window_days == 7 %}selected{% endif %}>7 Days Before Expiry (Standard)</option>
-              <option value="14" {% if settings.expiry_window_days == 14 %}selected{% endif %}>14 Days Before Expiry (Early Warning)</option>
-              <option value="30" {% if settings.expiry_window_days == 30 %}selected{% endif %}>30 Days Before Expiry (Canned Goods)</option>
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label class="form-label" for="id_low_stock">Low Stock Warning Threshold (Units)</label>
-            <input type="number" id="id_low_stock" name="low_stock_threshold" class="form-control font-mono" value="{{ settings.low_stock_threshold }}" min="1" max="100">
-          </div>
-
-          <div class="setting-toggle-row">
-            <div>
-              <span class="setting-toggle-title">Automated FIFO Shelf Priority</span>
-              <p class="setting-toggle-sub">Always prompt cashier to sell batches nearing expiry date first during POS scanning.</p>
-            </div>
-            <label class="switch">
-              <input type="checkbox" name="auto_fifo_sort" {% if settings.auto_fifo_sort %}checked{% endif %}>
-              <span class="slider"></span>
-            </label>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 4. Notifications & Sound + 5. Data Backup -->
-    <div class="grid-dual-column">
-      <!-- Notifications & Audio -->
-      <div id="sec-notifications" class="card-white p-5 anim-fade-up anim-delay-4 settings-section-anchor">
-        <div class="card-header-clean">
-          <div style="display: flex; align-items: center; gap: 10px;">
-            <div class="settings-icon-pill">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
-            </div>
-            <div>
-              <h2 class="section-title">Feedback & Notifications</h2>
-              <p style="font-size: 12px; color: var(--color-ink-muted);">Audio chimes and automated text drafts</p>
-            </div>
-          </div>
-        </div>
-
-        <div style="display: flex; flex-direction: column; gap: 14px; margin-top: 14px;">
-          <div class="setting-toggle-row">
-            <div>
-              <span class="setting-toggle-title">Cash Register Audio Feedback</span>
-              <p class="setting-toggle-sub">Play satisfying chime sound on barcode scan and sale completion.</p>
-            </div>
-            <label class="switch">
-              <input type="checkbox" name="sound_effects_enabled" {% if settings.sound_effects_enabled %}checked{% endif %}>
-              <span class="slider"></span>
-            </label>
-          </div>
-
-          <div class="setting-toggle-row">
-            <div>
-              <span class="setting-toggle-title">Auto-Draft Singilan Paalala</span>
-              <p class="setting-toggle-sub">Generate one-tap Tagalog SMS reminders when utang passes due date.</p>
-            </div>
-            <label class="switch">
-              <input type="checkbox" id="id_auto_sms_reminders" name="auto_sms_reminders" {% if settings.auto_sms_reminders %}checked{% endif %}>
-              <span class="slider"></span>
-            </label>
-          </div>
-
-          <div class="setting-toggle-row">
-            <div>
-              <span class="setting-toggle-title">Daily Closing Summary</span>
-              <p class="setting-toggle-sub">Present total sales and tubo recap upon day closing.</p>
-            </div>
-            <label class="switch">
-              <input type="checkbox" name="daily_summary_report" {% if settings.daily_summary_report %}checked{% endif %}>
-              <span class="slider"></span>
-            </label>
-          </div>
-
-          <!-- Live Singilan Paalala SMS Draft Preview -->
-          <div id="sms-preview-card" class="sms-preview-card">
-            <div class="sms-preview-header">
-              <span class="sms-preview-label">Live SMS Paalala Preview (Tagalog)</span>
-              <button type="button" class="btn btn-secondary btn-sm" style="font-size: 11px; padding: 4px 10px;" onclick="copySmsPreview()">Copy Draft</button>
-            </div>
-            <p id="sms-preview-text" class="sms-preview-body">Magandang araw po! Paalala mula sa {{ settings.store_name }}: may nakatalang balanse sa inyong utang matapos ang {{ settings.reminder_threshold_days }} araw na paalala window. Maaaring mag-abot sa tindahan o mag-GCash sa {{ settings.gcash_number }}. Salamat po.</p>
-            <div class="sms-preview-meta">
-              <span id="sms-preview-state">Status: Auto-draft enabled</span>
-              <span id="sms-preview-chars">0 chars</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Data Safety, Backup & Security -->
-      <div id="sec-backup" class="card-white p-5 anim-fade-up anim-delay-5 settings-section-anchor">
-        <div class="card-header-clean">
-          <div style="display: flex; align-items: center; gap: 10px;">
-            <div class="settings-icon-pill">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-            </div>
-            <div>
-              <h2 class="section-title">Data Backup & Safety</h2>
-              <p style="font-size: 12px; color: var(--color-ink-muted);">Ensure store records are safely exportable anytime</p>
-            </div>
-          </div>
-        </div>
-
-        <div style="display: flex; flex-direction: column; gap: 14px; margin-top: 14px;">
-          <div style="padding: 12px 14px; background-color: var(--color-canvas-bg); border-radius: var(--radius-control); border: 1px solid var(--color-border-hairline);">
-            <div style="font-size: 12px; font-weight: 600; color: var(--color-ink-primary);">Last Local Backup</div>
-            <p style="font-size: 12px; color: var(--color-ink-muted); margin-top: 2px;">{{ settings.last_backup_date }} • {{ settings.local_cache_size }}</p>
-          </div>
-
-          <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-            <button type="button" class="btn btn-secondary" style="flex: 1; min-width: 160px;" onclick="exportJsonBackup()">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-              <span>Export JSON Backup</span>
-            </button>
-            <button type="button" class="btn btn-secondary" style="flex: 1; min-width: 160px;" onclick="exportCsvData()">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
-              <span>Export Customer CSV</span>
-            </button>
-          </div>
-
-          <div style="margin-top: 8px; padding-top: 12px; border-top: 1px solid var(--color-border-hairline); display: flex; justify-content: space-between; align-items: center;">
-            <span style="font-size: 12px; color: var(--color-ink-muted);">Clear Temporary Offline Cache</span>
-            <button type="button" class="btn-ghost" style="color: var(--color-status-danger-text); font-size: 12px;" onclick="showToast('Offline cache purged and reloaded cleanly.', 'check')">
-              Purge Cache
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </form>
+{% extends 'base.html' %}{% block title %}Settings & exports · TindaHan Ledger{% endblock %}{% block content %}
+<div class="page-heading">
+<div>
+<h1>Settings & exports</h1>
+<p class="muted">Simple business rules, saved for your store.</p>
 </div>
-{% endblock %}
+</div>
+<div class="content-and-aside">
+<form method="post" class="paper-section">{% csrf_token %}{{ form.non_field_errors }}<div class="section-heading">
+<h2>Credit rules</h2>
+</div>
+{% include 'components/field.html' with field=form.default_credit_limit %}<div class="form-grid">{% include 'components/field.html' with field=form.overdue_grace_days %}{% include 'components/field.html' with field=form.reminder_threshold_days %}</div><div class="setting-toggle">{% include 'components/field.html' with field=form.block_over_limit %}</div>
+<div class="divider">
+</div>
+<div class="section-heading">
+<h2>Inventory rules</h2>
+</div>
+<div class="form-grid">{% include 'components/field.html' with field=form.expiry_window_days %}{% include 'components/field.html' with field=form.low_stock_threshold %}</div>
+<p class="field-help table-note">New product defaults do not change thresholds already saved on existing products.</p>
+<div class="form-actions">
+<button class="button primary" type="submit">Save settings</button>
+</div>
+</form>
+<aside>
+<section class="paper-section guidance dark-surface">{% include 'components/icon.html' with name='imgIconDownloadSimple' size=32 %}<h2>Your records, to keep</h2>
+<p>Download the current records from this store.</p>
+<div class="actions section-actions">
+<a class="button primary" href="{% url 'user_settings:export_csv' %}">Customers · CSV</a>
+<a class="button" href="{% url 'user_settings:export_json' %}">Store data · JSON</a>
+</div>
+<p class="field-help">Downloads include customer information. Keep copies somewhere private.</p>
+</section>
 
-{% block extra_scripts %}
-<script src="{% static 'js/user_settings/user_settings.js' %}"></script>
-{% endblock %}
+</aside>
+</div>
+<section class="paper-section">
+<h2>Restore business defaults</h2>
+<p class="muted table-note">Reset these rules. Existing customer limits, product thresholds, and business records stay as they are.</p>
+<div class="form-actions">
+<button class="button" type="button" data-modal="defaults-dialog">Restore defaults</button>
+</div>
+</section>
+<dialog id="defaults-dialog" class="app-dialog" aria-labelledby="defaults-title">
+<div class="dialog-header">
+<h2 id="defaults-title">Restore business defaults?</h2>
+<button type="button" data-close-dialog>Close</button>
+</div>
+<p class="muted">Existing customer limits, product thresholds, and business records stay as they are.</p>
+<form method="post" action="{% url 'user_settings:reset' %}">{% csrf_token %}<div class="form-actions">
+<button class="button primary" type="submit">Restore defaults</button>
+<button class="button" type="button" data-close-dialog>Keep settings</button>
+</div>
+</form>
+</dialog>{% endblock %}

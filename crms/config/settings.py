@@ -61,7 +61,9 @@ INSTALLED_APPS = [
     'apps.customers',
     'apps.inventory',
     'apps.landing',
+    'apps.pos',
     'apps.reports',
+    'apps.reminders',
 ]
 
 MIDDLEWARE = [
@@ -70,6 +72,7 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'config.middleware.DatabaseErrorMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -106,11 +109,12 @@ if os.environ.get("DATABASE_URL") and not use_local_db:
             ssl_require=True,
         )
     }
+    DATABASES['default']['OPTIONS']['connect_timeout'] = 10
 else:
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
-            "NAME": BASE_DIR / "db.sqlite3",
+            "NAME": os.environ.get('LOCAL_DB_PATH', BASE_DIR / 'db.sqlite3'),
         }
     }
 
@@ -139,7 +143,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Manila'
 
 USE_I18N = True
 
