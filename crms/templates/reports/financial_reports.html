@@ -1,0 +1,88 @@
+{% extends 'base.html' %}{% block title %}Financial reports · TindaHan Ledger{% endblock %}{% block content %}
+<div class="page-heading">
+<div>
+<h1>Know your numbers</h1>
+<p class="muted">Product sales and the costs of the batches you sold.</p>
+</div>
+</div>
+<nav class="segment-control" aria-label="Reporting period">
+<a href="?timeframe=today" {% if selected_timeframe == 'today' %}aria-current="page"{% endif %}>Today</a>
+<a href="?timeframe=this_month" {% if selected_timeframe == 'this_month' %}aria-current="page"{% endif %}>This month</a>
+<a href="?timeframe=all_time" {% if selected_timeframe == 'all_time' %}aria-current="page"{% endif %}>All time</a>
+</nav>
+<div class="two-columns">
+<section class="metric-card brand-surface">
+<span>Gross sales</span>
+<strong>₱{{ summary.gross_sales|floatformat:"2g" }}</strong>
+<small>{{ summary.transactions_count }} completed product sales</small>
+</section>
+<section class="metric-card dark-surface">
+<span>Gross profit</span>
+<strong>₱{{ summary.gross_profit|floatformat:"2g" }}</strong>
+<small>{{ summary.margin_pct }}% of sales · before expenses</small>
+</section>
+</div>
+<div class="report-grid">
+<section class="paper-section">
+<h2>Where sales came from</h2>
+<div class="sales-bar">
+<div>
+<span>Cash sales</span>
+<strong>₱{{ summary.cash_sales|floatformat:"2g" }}</strong>
+</div>
+<meter min="0" max="100" value="{{ summary.cash_share }}" aria-label="Cash share of sales">{{ summary.cash_share }}%</meter>
+</div>
+<div class="sales-bar">
+<div>
+<span>Utang sales</span>
+<strong>₱{{ summary.utang_sales|floatformat:"2g" }}</strong>
+</div>
+<meter min="0" max="100" value="{{ summary.utang_share }}" class="credit-meter" aria-label="Utang share of sales">{{ summary.utang_share }}%</meter>
+</div>
+<p class="field-help">Cost of goods sold: ₱{{ summary.cost_of_goods|floatformat:"2g" }}</p>
+</section>
+<section class="paper-section">
+<div class="collection-summary">
+<span>Cash collected in this period</span>
+<strong>₱{{ summary.cash_collected|floatformat:"2g" }}</strong>
+<p>₱{{ summary.cash_sales|floatformat:"2g" }} cash sales + ₱{{ summary.payments_received|floatformat:"2g" }} in utang payments. A payment is counted once.</p>
+</div>
+<div class="divider">
+</div>
+<div class="collection-summary">
+<span>Outstanding utang · current balance</span>
+<strong>₱{{ summary.uncollected_utang|floatformat:"2g" }}</strong>
+<p>Includes opening balances and manual adjustments.</p>
+</div>
+</section>
+</div>
+<section class="paper-section">
+<div class="section-heading">
+<h2>What sold best</h2>
+<span class="muted">By units sold</span>
+</div>
+<table class="responsive-table">
+<thead>
+<tr>
+<th>Product</th>
+<th>Units sold</th>
+<th>Revenue</th>
+<th>Profit</th>
+</tr>
+</thead>
+<tbody>{% for item in top_products %}<tr>
+<td>
+<a class="record-link" href="{% url 'inventory:product_detail' item.product_id %}">{{ item.product__name }}</a>
+</td>
+<td data-label="Units sold">{{ item.units_sold }} {{ item.product__unit }}</td>
+<td data-label="Revenue" class="amount">₱{{ item.revenue|floatformat:"2g" }}</td>
+<td data-label="Profit" class="amount">₱{{ item.profit|floatformat:"2g" }}</td>
+</tr>{% empty %}<tr>
+<td colspan="4" class="empty-cell">
+<h3>No product sales in this period.</h3>
+<p>Completed POS sales will appear here.</p>
+</td>
+</tr>{% endfor %}</tbody>
+</table>
+</section>
+<p class="footer-note">Gross profit excludes operating expenses and stock disposal losses. Manual debt adjustments do not count as product sales.</p>{% endblock %}

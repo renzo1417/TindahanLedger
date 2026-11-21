@@ -1,0 +1,56 @@
+{% extends 'base.html' %}{% load ledger_ui %}{% block title %}Singilan paalala · TindaHan Ledger{% endblock %}{% block content %}
+<div class="page-heading">
+<div>
+<h1>Singilan paalala</h1>
+<p class="muted">A reminder shaped around the suki’s current balance.</p>
+</div>
+</div>
+<p class="notice">
+<strong>SMS simulation</strong>
+<br>Messages are saved as simulations. No SMS is delivered.</p>
+<div class="reminders-layout">
+<section class="paper-section">
+<div class="section-heading">
+<h2>May utang</h2>
+<span class="muted">{{ customers|length }}</span>
+</div>{% for customer in customers %}<a class="recipient-link" href="?customer={{ customer.pk }}&tone={{ tone }}" {% if selected_customer.pk == customer.pk %}aria-current="true"{% endif %}>
+
+<span class="recipient-copy">
+<strong>{{ customer.name }}</strong>
+<strong class="amount">₱{{ customer.running_balance|floatformat:"2g" }}</strong><small>{{ customer.status_label }}</small></span>
+</a>{% empty %}<div class="empty-state">
+<h3>No balances to follow up.</h3>
+<p>Customers with outstanding utang will appear here.</p>
+<a href="{% url 'customers:customer_list' %}">Open customer ledger →</a>
+</div>{% endfor %}</section>
+<section class="paper-section reminder-card">
+<div class="section-heading">
+<div>
+<h2>Message preview</h2>{% if selected_customer %}<p class="muted">{{ selected_customer.name }} · {{ selected_customer.phone|default:'No phone saved' }}</p>{% endif %}</div>
+</div>{% if selected_customer %}<nav class="segment-control" aria-label="Message tone">
+<a href="?customer={{ selected_customer.pk }}&tone=polite" {% if tone == 'polite' %}aria-current="page"{% endif %}>Polite</a>
+<a href="?customer={{ selected_customer.pk }}&tone=firm" {% if tone == 'firm' %}aria-current="page"{% endif %}>Firm</a>
+</nav>
+<label class="sr-only" for="sms-preview">Reminder for {{ selected_customer.name }}</label>
+<textarea id="sms-preview" rows="6" readonly>{{ selected_customer.sms_preview }}</textarea>
+<p class="field-help table-note">Current balance · Saved store details</p>
+<div class="actions">
+<form method="post" action="{% url 'reminders:simulate' selected_customer.pk %}">{% csrf_token %}<input type="hidden" name="tone" value="{{ tone }}">
+<button class="button primary" type="submit" {% if not selected_customer.phone %}disabled{% endif %}>Simulate send</button>
+</form>
+<button type="button" class="button" data-copy-target="sms-preview">Copy message</button>
+</div>{% if not selected_customer.phone %}<p class="field-help table-note">A saved customer phone number is required to record a simulation.</p>{% endif %}{% else %}<p class="quiet-empty">Select a customer with an outstanding balance to preview a reminder.</p>{% endif %}</section>
+</div>
+<section class="paper-section">
+<div class="section-heading">
+<h2>Simulation history</h2>
+<span class="muted">Latest 20</span>
+</div>{% for item in history %}<div class="record-row">
+<div class="record-copy">
+<strong>{{ item.customer.name }}</strong>
+<small>{{ item.created_at|date:'d M Y · g:i A' }} · {{ item.tone|capfirst }} · Simulated</small>
+<p class="record-description">{{ item.message_content }}</p>
+</div>
+<span class="status">Simulated</span>
+</div>{% empty %}<p class="quiet-empty">No simulated sends yet.</p>{% endfor %}<p class="field-help">Simulations have no delivery timestamp. No message is sent to a phone.</p>
+</section>{% endblock %}

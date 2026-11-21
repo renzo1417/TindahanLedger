@@ -1,0 +1,35 @@
+{% extends 'base.html' %}{% block title %}{{ sale.receipt_no }} · Receipt{% endblock %}{% block content %}
+<div class="page-heading no-print">
+<div>
+<h1>Sale completed</h1>
+<p class="muted">{{ sale.payment_method }} sale · {{ sale.receipt_no }}</p>
+</div>
+<a class="button primary" href="{% url 'pos:pos_terminal' %}">Next sale</a>
+</div>
+<article class="paper-section receipt-paper">
+<div class="receipt-heading">
+<span class="receipt-check">{% include 'components/icon.html' with name='imgIconCheckSquare' size=32 %}</span>
+<h2>{{ global_store_profile.store_name }}</h2>
+<p class="muted">{{ sale.transaction_date|date:'d M Y · g:i A' }}</p>
+<p class="field-help">{{ sale.receipt_no }} · {{ sale.customer.name|default:'Walk-in customer' }}</p>
+</div>
+<div class="receipt-lines">{% for item in items %}<div class="receipt-line">
+<div>
+<strong>{{ item.product.name }}</strong>
+<small>{{ item.quantity }} × ₱{{ item.unit_price|floatformat:"2g" }} · {{ item.batch.batch_code }}</small>
+</div>
+<strong class="amount">₱{{ item.subtotal_amount|floatformat:"2g" }}</strong>
+</div>{% endfor %}</div>
+<div class="basket-total">
+<span>{% if sale.payment_method == 'Cash' %}Total paid{% else %}Total recorded{% endif %}</span>
+<strong>₱{{ sale.total_amount|floatformat:"2g" }}</strong>
+</div>{% if sale.payment_method == 'Cash' %}<div class="receipt-line">
+<span>Cash received</span>
+<span>₱{{ sale.cash_tendered|floatformat:"2g" }}</span>
+</div>
+<p class="change-row">Sukli: ₱{{ sale.change_amount|floatformat:"2g" }}</p>{% else %}<p class="notice">Recorded in {{ sale.customer.name }}’s utang ledger.</p>
+<a class="text-action" href="{% url 'customers:customer_detail' sale.customer.pk %}">Open customer ledger →</a>{% endif %}<p class="receipt-footer">Salamat sa pagtangkilik.</p>
+<div class="form-actions no-print">
+<button class="button full-width" type="button" data-print>Print receipt</button>
+</div>
+</article>{% endblock %}

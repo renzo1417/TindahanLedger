@@ -1,0 +1,81 @@
+{% extends 'base.html' %}{% load static %}
+{% block title %}Point of sale · TindaHan Ledger{% endblock %}
+{% block content %}<div class="page-heading">
+<div>
+<h1>Point of sale</h1>
+<p class="muted">Choose the paninda. Count the bayad.</p>
+</div>
+
+</div>
+<div id="pos-terminal" class="pos-layout" data-checkout-url="{% url 'pos:checkout' %}" data-token="{{ checkout_token }}" data-store-id="{{ request.user.pk }}" data-product-icon="{% static 'images/app/imgIconPackage.svg' %}" data-plus-icon="{% static 'images/app/imgIconPlus.svg' %}">
+<section class="pos-catalog">
+<div class="field">
+<label for="pos-search">Find a product</label>
+<input type="search" id="pos-search" placeholder="Product name or SKU">
+<label class="sr-only" for="pos-category">Product category</label>
+<select id="pos-category" hidden>
+<option value="">All paninda</option>{% for category in categories %}<option>{{ category }}</option>{% endfor %}</select>
+</div>
+<div class="pos-category-tabs" role="group" aria-label="Product categories">
+<button class="category-tab" type="button" data-pos-category="" aria-pressed="true">All paninda</button>{% for category in categories %}<button class="category-tab" type="button" data-pos-category="{{ category }}" aria-pressed="false">{{ category }}</button>{% endfor %}</div>
+<p id="catalog-count" class="muted" aria-live="polite">
+</p>
+<div id="pos-products" class="product-grid">
+</div>
+</section>
+<dialog id="basket-dialog" class="basket-panel" aria-labelledby="basket-title">
+<div class="dialog-header">
+<h2 id="basket-title">Current basket</h2>
+<button type="button" class="mobile-basket-close" data-close-dialog>Close</button>
+<button type="button" id="clear-basket" class="text-action">Clear</button>
+</div>
+<p id="basket-summary" class="field-help" aria-live="polite">
+</p>
+<div id="basket-items" class="basket-items">
+</div>
+<p id="basket-empty" class="quiet-empty">Your basket is empty.<br>Choose a product to get started.</p>
+<div class="basket-total">
+<span>Total bayarin</span>
+<strong id="basket-total">₱0.00</strong>
+</div>
+<form id="checkout-form">{% csrf_token %}<fieldset>
+<legend>Payment method</legend>
+<div class="payment-options">
+<label>
+<input type="radio" name="payment_method" value="Cash" checked> Cash</label>
+<label>
+<input type="radio" name="payment_method" value="Utang"> Utang</label>
+</div>
+</fieldset>
+<div id="cash-fields">
+<div class="field">
+<label for="cash-tendered">Cash received (₱)</label>
+<input id="cash-tendered" type="number" min="0" step=".01" inputmode="decimal">
+</div>
+<button type="button" class="text-action" id="exact-amount">Use exact amount</button>
+<p class="change-row">Sukli <strong id="change-amount">₱0.00</strong>
+</p>
+</div>
+<div id="credit-fields" hidden>
+<div class="field">
+<label for="pos-customer">Customer</label>
+<select id="pos-customer">
+<option value="">Choose a customer</option>{% for customer in customers %}<option value="{{ customer.pk }}">{{ customer.name }} · ₱{{ customer.running_balance|floatformat:2 }}</option>{% endfor %}</select>
+</div>
+<div class="field">
+<label for="pos-due-date">Due date</label>
+<input id="pos-due-date" type="date">
+</div>
+<p class="field-help">Credit limits are checked when saving.</p>
+</div>
+<p id="checkout-error" class="inline-error" role="alert">
+</p>
+<button id="checkout-button" class="button primary full-width" type="submit" disabled>Complete sale</button>
+</form>
+<div id="receipt-result" hidden aria-live="polite">
+</div>
+</dialog>
+</div>{{ catalog|json_script:'pos-catalog-data' }}<div class="mobile-basket-bar"><div><strong id="mobile-basket-total">₱0.00</strong><small id="mobile-basket-items">Your basket is empty</small></div><button class="button primary" type="button" id="open-basket">View basket <span class="sr-only" id="basket-count">0</span></button></div>
+{% endblock %}
+{% block extra_scripts %}<script src="{% static 'js/pos/pos.js' %}" defer>
+</script>{% endblock %}
