@@ -1,276 +1,116 @@
-{% extends 'base.html' %}
-{% load static %}
-
-{% block title %}Daily Store Overview — {{ global_store_profile.store_name }}{% endblock %}
-
-{% block extra_head %}
-<link rel="stylesheet" href="{% static 'css/home/home.css' %}">
-{% endblock %}
-
-{% block page_heading %}Daily Store Overview{% endblock %}
-{% block page_subheading %}{{ global_store_profile.store_name }} • {{ global_store_profile.owner_name }}{% endblock %}
-
+{% extends 'base.html' %}{% load ledger_ui %}
+{% block title %}Overview · TindaHan Ledger{% endblock %}
 {% block content %}
-<div class="container-app-fluid space-y-6">
-  <!-- Screen Header -->
-  <section class="section-header anim-fade-up anim-delay-1">
-    <div>
-      <h1 class="page-title">Daily Store Overview</h1>
-      <p class="page-subtitle">Sari-Sari Store Ledger • Status as of today, {{ current_date }}</p>
-    </div>
-    <div class="header-actions">
-      <button type="button" class="btn btn-primary" onclick="showToast('POS Terminal sale entry triggered.', 'check')">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-        <span>Log Sale</span>
-      </button>
-    </div>
-  </section>
-
-  <!-- 4 Editorial KPI Cards -->
-  <section class="kpi-grid">
-    <!-- Card 1: Today's Sales -->
-    <div class="kpi-card anim-fade-up anim-delay-1">
-      <div class="kpi-header">
-        <span class="kpi-label">Today's Sales</span>
-        <span class="kpi-link">
-          <span>Active</span>
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-        </span>
-      </div>
-      <div class="kpi-body">
-        <div class="kpi-value">₱{{ kpis.today_sales_total|floatformat:2 }}</div>
-        <p class="kpi-subtext">{{ kpis.today_sales_count }} sales transactions recorded</p>
-      </div>
-    </div>
-
-    <!-- Card 2: Total Utang (Active Alert) -->
-    <a href="{% url 'customers:customer_list' %}" class="kpi-card kpi-card-alert anim-fade-up anim-delay-2" style="text-decoration: none; color: inherit;">
-      <div class="kpi-header">
-        <span class="kpi-label">Total Utang</span>
-        <span style="color: var(--color-primary-orange); display: flex; align-items: center;">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg>
-        </span>
-      </div>
-      <div class="kpi-body">
-        <div class="kpi-value">₱{{ kpis.total_utang_balance|floatformat:2 }}</div>
-        <p class="kpi-subtext text-alert">{{ kpis.overdue_accounts_count }} accounts overdue</p>
-      </div>
-    </a>
-
-    <!-- Card 3: Low Stock -->
-    <a href="{% url 'inventory:inventory_list' %}?status=low_stock" class="kpi-card anim-fade-up anim-delay-3" style="text-decoration: none; color: inherit;">
-      <div class="kpi-header">
-        <span class="kpi-label">Low Stock</span>
-        <span style="color: var(--color-ink-muted);">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
-        </span>
-      </div>
-      <div class="kpi-body">
-        <div class="kpi-value">{{ kpis.low_stock_items_count }} items</div>
-        <p class="kpi-subtext">Needs shelf replenishment</p>
-      </div>
-    </a>
-
-    <!-- Card 4: Expiry Alerts -->
-    <div class="kpi-card kpi-card-alert anim-fade-up anim-delay-4">
-      <div class="kpi-header">
-        <span class="kpi-label">Expiry Alerts</span>
-        <span style="color: var(--color-primary-orange);">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-        </span>
-      </div>
-      <div class="kpi-body">
-        <div class="kpi-value text-alert">{{ kpis.expiry_alert_batches_count }} batches</div>
-        <p class="kpi-subtext text-alert">{{ kpis.expired_batches_count }} expired batch</p>
-      </div>
-    </div>
-  </section>
-
-  <!-- Daily Closing Routine & Kaha Verification Checklist -->
-  <section class="card-white p-5 anim-fade-up anim-delay-2" style="border-left: 4px solid var(--color-primary-orange);">
-    <div class="card-header-clean" style="margin-bottom: 14px;">
-      <div>
-        <div style="display: flex; align-items: center; gap: 8px;">
-          <span class="badge badge-settled">Closing Routine</span>
-          <h2 class="section-title" style="margin: 0; font-size: 15px;">Mga Gawain Bago Magsara ng Tindahan</h2>
-        </div>
-        <p style="font-size: 12px; color: var(--color-ink-muted); margin-top: 2px;">Tatlong mahalagang hakbang bago mag-remit ng kaha at magkandado sa gabi</p>
-      </div>
-      <a href="{% url 'reports:index' %}" class="btn btn-outline" style="font-size: 12px; padding: 6px 12px; text-decoration: none;">
-        <span>Tingnan ang Financial Reports</span>
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-      </a>
-    </div>
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px;">
-      <div style="background: var(--color-canvas-bg); padding: 14px; border-radius: var(--radius-badge); border: 1px solid var(--color-border-main);">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-          <strong style="font-size: 13px; color: var(--color-ink-primary);">1. Kwentahin ang Kaha</strong>
-          <span class="badge badge-success">✓ ₱4,180.00</span>
-        </div>
-        <p style="font-size: 11.5px; color: var(--color-ink-secondary); margin: 0; line-height: 1.5;">
-          Tugma ang aktwal na pera sa benta ng araw at natanggap na bayad sa dating utang.
-        </p>
-      </div>
-      <div style="background: var(--color-canvas-bg); padding: 14px; border-radius: var(--radius-badge); border: 1px solid var(--color-border-main);">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-          <strong style="font-size: 13px; color: var(--color-ink-primary);">2. FIFO Expiry Check</strong>
-          <span class="badge badge-overdue-solid">4 Batch</span>
-        </div>
-        <p style="font-size: 11.5px; color: var(--color-ink-secondary); margin: 0; line-height: 1.5;">
-          Ilipat ang mga panindang 3 hanggang 7 araw na lang sa harap ng estante bago magbukas bukas.
-        </p>
-      </div>
-      <div style="background: var(--color-canvas-bg); padding: 14px; border-radius: var(--radius-badge); border: 1px solid var(--color-border-main);">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-          <strong style="font-size: 13px; color: var(--color-ink-primary);">3. Singilin at Paalala</strong>
-          <span class="badge badge-settled">4 Overdue</span>
-        </div>
-        <p style="font-size: 11.5px; color: var(--color-ink-secondary); margin: 0; line-height: 1.5;">
-          Suriin ang mga sukang may utang na lampas 14 araw at ihanda ang paalala sa susunod na hulog.
-        </p>
-      </div>
-    </div>
-  </section>
-
-  <!-- Dual Column Grid -->
-  <section class="grid-dual-column">
-    <!-- Left Column: Inverted Dark Bento FIFO Expiry Panel -->
-    <div class="bento-dark anim-fade-up anim-delay-3">
-      <div class="bento-dark-header">
-        <div>
-          <h2 class="bento-dark-title">Expiring Soon & Expired Batches</h2>
-          <p class="bento-dark-subtitle">FIFO priority: sell earliest batches first to avoid spoilage</p>
-        </div>
-      </div>
-
-      <div class="bento-dark-list">
-        {% for batch in urgent_batches %}
-        <div class="bento-dark-item">
-          <div>
-            <div class="bento-item-title-row">
-              <span class="bento-item-name">{{ batch.product_name }}</span>
-              {% if batch.status == 'expired' %}
-                <span class="badge badge-overdue-solid">{{ batch.status_label }}</span>
-              {% else %}
-                <span class="badge badge-active-outline">{{ batch.status_label }}</span>
-              {% endif %}
-            </div>
-            <p class="bento-item-sub">Batch: {{ batch.batch_code }} • {{ batch.quantity }} units • {{ batch.shelf_location }}</p>
-          </div>
-          <button type="button" class="bento-item-action" onclick="showToast('Batch {{ batch.batch_code }} marked for promo discount.', 'check')">
-            <span>Resolve</span>
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-          </button>
-        </div>
-        {% empty %}
-        <p style="color: rgba(255,255,255,0.6); font-size: 13px; text-align: center; padding: 24px;">No urgent expired batches at this time.</p>
-        {% endfor %}
-      </div>
-    </div>
-
-    <!-- Right Column: Overdue Utang Accounts Card -->
-    <div class="card-white p-5 anim-fade-up anim-delay-4">
-      <div class="card-header-clean">
-        <div>
-          <h2 class="section-title">Overdue Utang Accounts</h2>
-          <p style="font-size: 12px; color: var(--color-ink-muted);">Action required: send singilan paalala</p>
-        </div>
-      </div>
-
-      <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 14px;">
-        {% for customer in overdue_customers %}
-        <a href="{% url 'customers:customer_detail' customer.id %}" class="ledger-row" style="margin-bottom: 0; padding: 10px 14px; text-decoration: none; color: inherit;">
-          <div class="ledger-left">
-            <div class="avatar-badge avatar-badge-alert" style="width: 34px; height: 34px; font-size: 14px;">{{ customer.avatar_letter }}</div>
-            <div>
-              <div class="ledger-name-row">
-                <span class="ledger-title" style="font-size: 13px;">{{ customer.name }}</span>
-                {% if customer.nickname %}
-                  <span class="tag-nickname">({{ customer.nickname }})</span>
-                {% endif %}
-              </div>
-              <p class="ledger-meta" style="color: var(--color-primary-orange); font-weight: 600;">
-                {{ customer.days_overdue }} days overdue • Due {{ customer.due_date }}
-              </p>
-            </div>
-          </div>
-          <div class="ledger-right">
-            <div class="ledger-amount" style="font-size: 16px; color: var(--color-primary-orange);">
-              ₱{{ customer.running_balance|floatformat:2 }}
-            </div>
-            <span class="ledger-subtext">Limit ₱{{ customer.credit_limit|floatformat:0 }}</span>
-          </div>
-        </a>
-        {% empty %}
-        <div class="empty-state-card" style="padding: 24px 16px; border: none; box-shadow: none;">
-          <p style="color: var(--color-ink-muted); font-size: 13px;">No overdue accounts!</p>
-        </div>
-        {% endfor %}
-      </div>
-
-      <div style="margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--color-border-hairline); display: flex; justify-content: flex-end;">
-        <a href="{% url 'customers:customer_list' %}?filter=overdue" class="btn btn-secondary btn-sm">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-          <span>Singilan Paalala Generator</span>
-        </a>
-      </div>
-    </div>
-  </section>
-
-  <!-- Bottom Section: Today's Chronological Sales Log Tape -->
-  <section class="card-white p-5 anim-fade-up anim-delay-5">
-    <div class="card-header-clean">
-      <div>
-        <h2 class="section-title">Today's Sales & Transactions Tape</h2>
-        <p style="font-size: 12px; color: var(--color-ink-muted);">Chronological record of POS transactions and customer payments</p>
-      </div>
-      <button type="button" class="btn-ghost" style="font-size: 12px;" onclick="showToast('Generating daily audit report...', 'info')">
-        <span>Daily Audit Summary</span>
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-      </button>
-    </div>
-
-    <div style="display: flex; flex-direction: column; margin-top: 14px;">
-      {% for item in today_sales_log %}
-      <div class="sales-tape-row">
-        <div style="display: flex; align-items: center; gap: 14px; min-width: 0;">
-          <span style="font-family: var(--font-mono); font-size: 11px; color: var(--color-ink-muted); width: 68px; font-weight: 500;">
-            {{ item.time }}
-          </span>
-          <div>
-            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-              <span style="font-weight: 700; font-size: 13px; color: var(--color-ink-primary);">{{ item.customer_name }}</span>
-              {% if item.payment_method == 'Cash' %}
-                <span class="badge badge-settled">Cash Sale</span>
-              {% elif item.payment_method == 'Utang' %}
-                <span class="badge badge-active-outline">Pautang</span>
-              {% else %}
-                <span class="badge badge-success">Bayad Settlement</span>
-              {% endif %}
-            </div>
-            <p style="font-size: 12px; color: var(--color-ink-muted); margin-top: 2px;">
-              {{ item.items_summary }} • <span style="font-family: var(--font-mono);">{{ item.receipt_no }}</span>
-            </p>
-          </div>
-        </div>
-
-        <div style="text-align: right; flex-shrink: 0;">
-          <div style="font-family: var(--font-serif); font-size: 16px; font-weight: 700; color: var(--color-ink-primary);">
-            ₱{{ item.total_amount|floatformat:2 }}
-          </div>
-          {% if item.profit_earned > 0 %}
-          <span style="font-size: 11px; color: var(--color-status-success-text); font-weight: 700;">
-            +₱{{ item.profit_earned|floatformat:2 }} Tubo
-          </span>
-          {% endif %}
-        </div>
-      </div>
-      {% endfor %}
-    </div>
-  </section>
+<div class="page-heading">
+<div>
+<h1>Today’s talaan</h1>
+<p class="muted">Your sales, suki balances, and the shelves that need attention.</p>
 </div>
-{% endblock %}
-
-{% block extra_scripts %}
-<script src="{% static 'js/home/home.js' %}"></script>
+<a class="button primary" href="{% url 'pos:pos_terminal' %}">New sale</a>
+</div>
+<div class="money-overview">
+<section class="cash-card">
+<div class="section-heading">
+<h2>Cash received today</h2>{% include 'components/icon.html' with name='imgIconWallet' size=32 %}</div>
+<strong class="hero-number">₱{{ summary.cash_collected|floatformat:"2g" }}</strong>
+<div class="cash-breakdown">
+<div>
+<strong>₱{{ summary.cash_sales|floatformat:"2g" }}</strong>
+<small>Cash sales</small>
+</div>
+<div>
+<strong>₱{{ summary.payments_received|floatformat:"2g" }}</strong>
+<small>Utang payments</small>
+</div>
+</div>
+</section>
+<section class="debt-card">
+<span>Outstanding utang</span>
+<strong class="debt-number">₱{{ summary.uncollected_utang|floatformat:"2g" }}</strong>
+<p>{% include 'components/icon.html' with name='imgIconClock' size=20 %}{{ global_store_kpis.overdue_accounts_count }} account{{ global_store_kpis.overdue_accounts_count|pluralize }} {% if global_store_kpis.overdue_accounts_count == 1 %}needs{% else %}need{% endif %} follow up</p>
+<a href="{% url 'customers:customer_list' %}">Open utang ledger →</a>
+</section>
+</div>
+<section class="summary-strip" aria-label="Today's sales">
+<div>
+<span>Sales recorded</span>
+<strong>₱{{ summary.gross_sales|floatformat:"2g" }}</strong>
+<small>Cash and utang product sales</small>
+</div>
+<div>
+<span>Gross profit</span>
+<strong>₱{{ summary.gross_profit|floatformat:"2g" }}</strong>
+<small>Before operating expenses</small>
+</div>
+<div>
+<span>Completed sales</span>
+<strong>{{ summary.transactions_count }}</strong>
+<small>Today’s product transactions</small>
+</div>
+</section>
+<div class="two-columns">
+<section class="paper-section">
+<div class="section-heading">
+<h2>Check the shelves</h2>
+<a href="{% url 'expiry' %}">All batches →</a>
+</div>{% for batch in urgent_batches %}<a class="record-row" href="{% url 'inventory:product_detail' batch.product_id %}">
+<span class="product-art">{% include 'components/icon.html' with name=batch.product.unit|product_artwork size=48 height=58 %}</span>
+<div class="record-copy">
+<strong>{{ batch.product.name }}</strong>
+<small>{{ batch.quantity }} {{ batch.product.unit }} · {{ batch.batch_code }}</small>
+<span class="status {{ batch.display_status }}">{{ batch.display_label }}</span>
+</div>
+</a>{% empty %}<div class="empty-state">
+<h3>No expiry alerts</h3>
+<p>Stock needing attention will appear here.</p>
+<a href="{% url 'inventory:inventory_list' %}">View inventory →</a>
+</div>{% endfor %}</section>
+<section class="paper-section">
+<div class="section-heading">
+<h2>Follow up on utang</h2>
+<a href="{% url 'reminders:sms_reminders' %}">Reminders →</a>
+</div>{% for customer in overdue_customers %}<a class="record-row" href="{% url 'customers:customer_detail' customer.pk %}">
+<span class="avatar">{{ customer.name|initials }}</span>
+<div class="record-copy">
+<strong>{{ customer.name }}</strong>
+<small class="danger-text">{{ customer.status_label }}</small>
+</div>
+<strong class="amount">₱{{ customer.running_balance|floatformat:"2g" }}</strong>
+</a>{% empty %}<div class="empty-state">
+<h3>No overdue accounts</h3>
+<p>Overdue customer balances will appear here.</p>
+<a href="{% url 'customers:customer_list' %}">Open utang ledger →</a>
+</div>{% endfor %}<p class="field-help">Record a payment as soon as it comes in.</p>
+</section>
+</div>
+<section class="paper-section">
+<div class="section-heading">
+<h2>Recent activity</h2>
+<a href="{% url 'reports:financial_reports' %}">View reports →</a>
+</div>
+<table class="responsive-table activity-table">
+<thead>
+<tr>
+<th>Customer</th>
+<th>Entry</th>
+<th>Time</th>
+<th>Amount</th>
+</tr>
+</thead>
+<tbody>{% for item in activity %}<tr>
+<td>
+<strong>{{ item.label }}</strong>
+</td>
+<td>{{ item.kind }}</td>
+<td>{{ item.date|date:'g:i A' }}</td>
+<td class="amount">₱{{ item.amount|floatformat:"2g" }}</td>
+</tr>{% empty %}<tr>
+<td colspan="4" class="empty-cell">
+<h3>A fresh page for today.</h3>
+<p>Complete a sale or record a customer payment to get started.</p>
+<a class="button" href="{% url 'pos:pos_terminal' %}">Start a sale</a>
+</td>
+</tr>{% endfor %}</tbody>
+</table>
+</section>
 {% endblock %}

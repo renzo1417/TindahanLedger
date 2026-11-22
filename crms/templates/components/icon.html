@@ -1,0 +1,1 @@
+{% load static %}<img class="ui-icon{% if class %} {{ class }}{% endif %}" src="{% static 'images/app/' %}{{ name }}.svg" width="{{ size|default:24 }}" height="{% if height %}{{ height }}{% else %}{{ size|default:24 }}{% endif %}" alt="" aria-hidden="true">

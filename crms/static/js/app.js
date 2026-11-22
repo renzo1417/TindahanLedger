@@ -1,140 +1,85 @@
-/**
- * TindaHan Ledger - Core Application Interactions (Vanilla JS)
- * High-craft interaction handlers: Modals, Toasts, Clipboard, Search
- */
-
+/* Shared controls. Native dialogs provide focus containment and focus restoration. */
+window.openModal = (id, instant = false) => { const dialog = document.getElementById(id); if (dialog && !dialog.open) { dialog.dataset.instant = String(instant); dialog.showModal(); } };
+window.closeModal = id => document.getElementById(id)?.close();
+window.showToast = message => {
+  const host = document.getElementById('global-toast-container');
+  if (!host) return;
+  const toast = document.createElement('div'); toast.className = 'app-toast'; toast.textContent = message;
+  host.append(toast); setTimeout(() => toast.remove(), 4200);
+};
+window.copyTextToClipboard = async (text, message = 'Message copied.') => {
+  try { await navigator.clipboard.writeText(text); window.showToast(message); }
+  catch { window.showToast('Clipboard unavailable. Select the message and copy it manually.'); }
+};
+window.togglePassword = (id, button) => {
+  const input = document.getElementById(id); if (!input) return;
+  input.type = input.type === 'password' ? 'text' : 'password';
+  button?.setAttribute('aria-pressed', String(input.type === 'text'));
+  button?.querySelector('.eye-open')?.style.setProperty('display', input.type === 'text' ? 'none' : 'block');
+  button?.querySelector('.eye-closed')?.style.setProperty('display', input.type === 'text' ? 'block' : 'none');
+};
 document.addEventListener('DOMContentLoaded', () => {
-  // SVG Icon Templates for Toasts & Feedback
-  const ICONS = {
-    check: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`,
-    alert: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FF6A1A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>`,
-    copy: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>`,
-    info: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>`
-  };
-
-  // 1. Global Modal Handler
-  window.openModal = function(modalId) {
-    const modal = document.getElementById(modalId);
-    if (modal) {
-      modal.classList.add('is-open');
-      document.body.style.overflow = 'hidden';
-      const input = modal.querySelector('input:not([type="hidden"]), select, textarea');
-      if (input) {
-        setTimeout(() => input.focus(), 60);
+  document.querySelectorAll('dialog[data-auto-open]').forEach(dialog => dialog.showModal());
+  document.querySelectorAll('[data-modal]').forEach(button => button.addEventListener('click', event => window.openModal(button.dataset.modal, event.detail === 0)));
+  document.querySelectorAll('[data-close-dialog]').forEach(button => button.addEventListener('click', () => button.closest('dialog').close()));
+  document.querySelectorAll('dialog').forEach(dialog => dialog.addEventListener('click', event => {
+    if (event.target !== dialog || !dialog.matches(':modal')) return;
+    const rect = dialog.getBoundingClientRect();
+    if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) dialog.close();
+  }));
+  document.querySelectorAll('[data-copy-target]').forEach(button => button.addEventListener('click', () => window.copyTextToClipboard(document.getElementById(button.dataset.copyTarget).value)));
+  document.querySelectorAll('[data-print]').forEach(button => button.addEventListener('click', () => window.print()));
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Tab') {
+      const modal = document.querySelector('dialog:modal');
+      if (modal) {
+        const controls = Array.from(modal.querySelectorAll('a[href],button:not(:disabled),input:not(:disabled):not([type="hidden"]),select:not(:disabled),textarea:not(:disabled),[tabindex="0"]')).filter(node => node.getClientRects().length);
+        const first = controls[0], last = controls.at(-1);
+        if (controls.length && (event.shiftKey && document.activeElement === first || !event.shiftKey && document.activeElement === last)) { event.preventDefault(); (event.shiftKey ? last : first).focus(); }
       }
     }
-  };
-
-  window.closeModal = function(modalId) {
-    const modal = document.getElementById(modalId);
-    if (modal) {
-      modal.classList.remove('is-open');
-      // Only restore scroll if no other modals are open
-      if (!document.querySelector('.modal-backdrop.is-open')) {
-        document.body.style.overflow = '';
-      }
-    }
-  };
-
-  // Close modals on clicking backdrop
-  document.querySelectorAll('.modal-backdrop').forEach(backdrop => {
-    backdrop.addEventListener('click', (e) => {
-      if (e.target === backdrop) {
-        window.closeModal(backdrop.id);
-      }
-    });
-  });
-
-  // Close modals on pressing ESC or toggle search modal on Cmd/Ctrl+K
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') {
-      document.querySelectorAll('.modal-backdrop.is-open').forEach(modal => {
-        window.closeModal(modal.id);
-      });
-    }
-    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
-      e.preventDefault();
-      const searchModal = document.getElementById('search-modal');
-      if (searchModal && searchModal.classList.contains('is-open')) {
-        window.closeModal('search-modal');
-      } else {
-        window.openModal('search-modal');
-      }
+    if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k' && document.getElementById('search-modal')) {
+      event.preventDefault(); const dialog = document.getElementById('search-modal'); dialog.open ? dialog.close() : window.openModal('search-modal', true);
     }
   });
-
-  // 2. Global Toast Notification System
-  window.showToast = function(message, type = 'check') {
-    let container = document.getElementById('global-toast-container');
-    if (!container) {
-      container = document.createElement('div');
-      container.id = 'global-toast-container';
-      container.className = 'toast-container';
-      document.body.appendChild(container);
-    }
-
-    const iconSvg = ICONS[type] || ICONS.check;
-
-    const toast = document.createElement('div');
-    toast.className = 'toast';
-    toast.innerHTML = `<span style="display: flex; align-items: center;">${iconSvg}</span><span>${message}</span>`;
-    container.appendChild(toast);
-
-    requestAnimationFrame(() => {
-      toast.classList.add('show');
-    });
-
-    setTimeout(() => {
-      toast.classList.remove('show');
-      setTimeout(() => toast.remove(), 200);
-    }, 2800);
-  };
-
-  // 3. Global Copy-to-Clipboard Helper
-  window.copyTextToClipboard = function(text, successMsg = 'Copied to clipboard!') {
-    if (navigator.clipboard && window.isSecureContext) {
-      navigator.clipboard.writeText(text).then(() => {
-        window.showToast(successMsg, 'copy');
-      }).catch(() => {
-        fallbackCopy(text, successMsg);
-      });
-    } else {
-      fallbackCopy(text, successMsg);
-    }
-  };
-
-  function fallbackCopy(text, successMsg) {
-    const textArea = document.createElement('textarea');
-    textArea.value = text;
-    textArea.style.position = 'fixed';
-    textArea.style.left = '-999999px';
-    document.body.appendChild(textArea);
-    textArea.focus();
-    textArea.select();
-    try {
-      document.execCommand('copy');
-      window.showToast(successMsg, 'copy');
-    } catch (err) {
-      window.showToast('Failed to copy text', 'alert');
-    }
-    document.body.removeChild(textArea);
+  document.querySelectorAll('.workspace form:not(#checkout-form)').forEach(form => form.addEventListener('submit', () => {
+    if (!form.checkValidity()) return;
+    form.querySelectorAll('button[type="submit"]').forEach(button => { button.disabled = true; button.dataset.busy = 'true'; button.setAttribute('aria-busy', 'true'); });
+  }));
+  window.addEventListener('pageshow', () => document.querySelectorAll('[data-busy]').forEach(button => { button.disabled = false; button.removeAttribute('aria-busy'); delete button.dataset.busy; }));
+  const input = document.getElementById('global-search-input'), results = document.getElementById('global-search-results');
+  let timer, controller;
+  input?.addEventListener('input', () => {
+    clearTimeout(timer); controller?.abort();
+    const query = input.value.trim(); results.replaceChildren();
+    if (!query) { results.textContent = 'Start typing to find a customer or product.'; return; }
+    timer = setTimeout(async () => {
+      controller = new AbortController(); results.textContent = 'Searching…';
+      try {
+        const response = await fetch(`${input.dataset.searchUrl}?q=${encodeURIComponent(query)}`, { signal: controller.signal, headers: { Accept: 'application/json' } });
+        if (!response.ok) throw new Error();
+        const data = await response.json(); results.replaceChildren();
+        if (!data.results.length) results.textContent = 'No customers or products match.';
+        data.results.forEach(item => { const link = document.createElement('a'), name = document.createElement('strong'), detail = document.createElement('small'); link.href = item.url; name.textContent = item.label; detail.textContent = item.detail; link.append(name, detail); results.append(link); });
+      } catch (error) { if (error.name !== 'AbortError') results.textContent = 'Search is unavailable. Please try again.'; }
+    }, 220);
+  });
+  const entry = document.getElementById('ledger-entry-form');
+  if (entry) {
+    const customer = document.getElementById('entry-customer'), amount = entry.querySelector('[name="amount"]');
+    const preview = document.getElementById('entry-preview'), note = document.getElementById('entry-preview-note');
+    const format = new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' });
+    const updatePreview = () => {
+      const selected = customer.selectedOptions[0];
+      if (!selected?.value || !amount.value) { preview.textContent = '—'; note.textContent = 'Choose a customer and enter an amount.'; return; }
+      const balance = Math.round(Number(selected.dataset.balance) * 100), entered = Math.round(Number(amount.value) * 100);
+      if (!Number.isFinite(entered) || entered < 0) { preview.textContent = '—'; note.textContent = 'Enter a valid amount.'; return; }
+      const payment = entry.dataset.kind === 'bayad';
+      if (payment) amount.max = (balance / 100).toFixed(2);
+      const remaining = payment ? balance - entered : balance + entered;
+      preview.textContent = format.format(remaining / 100);
+      note.textContent = payment && remaining < 0 ? 'The payment exceeds this customer’s balance.' : `${format.format(balance / 100)} ${payment ? '−' : '+'} ${format.format(entered / 100)} · preview only`;
+    };
+    customer.addEventListener('change', updatePreview); amount.addEventListener('input', updatePreview); updatePreview();
   }
-
-  // 4. Global Password Show/Hide Toggle
-  window.togglePassword = function(inputId, btn) {
-    const input = document.getElementById(inputId);
-    if (!input) return;
-    const eyeOpen = btn.querySelector('.eye-open');
-    const eyeClosed = btn.querySelector('.eye-closed');
-    if (input.type === 'password') {
-      input.type = 'text';
-      if (eyeOpen) eyeOpen.style.display = 'none';
-      if (eyeClosed) eyeClosed.style.display = 'block';
-    } else {
-      input.type = 'password';
-      if (eyeOpen) eyeOpen.style.display = 'block';
-      if (eyeClosed) eyeClosed.style.display = 'none';
-    }
-  };
 });
-

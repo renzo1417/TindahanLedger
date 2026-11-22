@@ -1,0 +1,43 @@
+<div class="actions batch-actions{% if prominent %} prominent-batch-actions{% endif %}">
+<button class="{% if prominent %}button{% else %}text-action{% endif %}" type="button" data-modal="expiry-dialog-{{ batch.pk }}">Correct date</button>
+<button class="{% if prominent %}button danger{% else %}text-action danger-text{% endif %}" type="button" data-modal="dispose-dialog-{{ batch.pk }}">Review disposal</button>
+</div>
+<dialog id="expiry-dialog-{{ batch.pk }}" class="app-dialog" aria-labelledby="expiry-title-{{ batch.pk }}">
+<div class="dialog-header">
+<h2 id="expiry-title-{{ batch.pk }}">Correct expiry date</h2>
+<button type="button" data-close-dialog>Close</button>
+</div>
+<p class="muted">{{ batch.product.name }} · {{ batch.batch_code }}</p>
+<form method="post" action="{% url 'inventory:correct_expiry' batch.pk %}">{% csrf_token %}<div class="field">
+<label for="expiry-{{ batch.pk }}">Printed expiry date</label>
+<input id="expiry-{{ batch.pk }}" name="expiry_date" type="date" value="{{ batch.expiry_date|date:'Y-m-d' }}" required>
+</div>
+<p class="field-help">Use the date printed on this batch. Other batches keep their dates.</p>
+<div class="form-actions">
+<button class="button primary" type="submit">Save corrected date</button>
+<button class="button" type="button" data-close-dialog>Cancel</button>
+</div>
+</form>
+</dialog>
+<dialog id="dispose-dialog-{{ batch.pk }}" class="app-dialog" aria-labelledby="dispose-title-{{ batch.pk }}">
+<div class="dialog-header">
+<h2 id="dispose-title-{{ batch.pk }}">Dispose stock batch</h2>
+<button type="button" data-close-dialog>Close</button>
+</div>
+<p class="muted">{{ batch.product.name }} · {{ batch.batch_code }}</p>
+<p class="notice">This removes the remaining stock from this batch and records its cost as a disposal loss.</p>
+<div class="aside-total">
+<span>Recorded loss</span>
+<strong>₱{{ batch.remaining_cost|floatformat:"2g" }}</strong>
+<small>{{ batch.quantity }} {{ batch.product.unit }} at ₱{{ batch.cost_price|floatformat:"2g" }} each</small>
+</div>
+<form method="post" action="{% url 'inventory:dispose' batch.pk %}">{% csrf_token %}<div class="divider">
+</div>
+<label class="confirmation">
+<input type="checkbox" name="confirm" value="yes" required>I confirm disposal of {{ batch.quantity }} {{ batch.product.unit }} from this batch.</label>
+<div class="form-actions">
+<button class="button danger" type="submit">Dispose batch</button>
+<button class="button" type="button" data-close-dialog>Cancel</button>
+</div>
+</form>
+</dialog>

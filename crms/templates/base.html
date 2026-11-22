@@ -1,55 +1,42 @@
 {% load static %}
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{% block title %}TindaHan Ledger — Sari-Sari Store Management{% endblock %}</title>
-
-  <!-- Google Fonts: Newsreader (Serif), Plus Jakarta Sans (Sans), JetBrains Mono (Mono) -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;0,6..72,700;1,6..72,400;1,6..72,700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-
-  <!-- Design System Master Stylesheet -->
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>{% block title %}TindaHan Ledger{% endblock %}</title>
+  <link rel="preload" href="{% static 'fonts/landing/jakarta-latin.woff2' %}" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="{% static 'fonts/landing/newsreader-latin.woff2' %}" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="{% static 'css/style.css' %}">
-
+  <link rel="stylesheet" href="{% static 'css/workspace.css' %}">
+  <link rel="stylesheet" href="{% static 'css/workspace-fidelity.css' %}">
   {% block extra_head %}{% endblock %}
 </head>
 <body>
-  {% block body_content %}
-  <div class="app-shell">
-    <!-- Desktop Sticky Sidebar (>=768px) -->
-    {% include 'components/sidebar_navigation.html' %}
-
-    <!-- Main Content Area -->
-    <div class="app-main-content">
-      <!-- Top Masthead Bar -->
-      {% include 'components/masthead_bar.html' %}
-
-      <!-- Primary View Content Block -->
-      <main>
-        {% block content %}{% endblock %}
-      </main>
-    </div>
+{% block body_content %}
+<div class="workspace" data-page="{{ active_nav }}">
+  <a class="skip-link" href="#main-content">Skip to content</a>
+  {% include 'components/sidebar_navigation.html' %}
+  <div class="workspace-main">
+    {% include 'components/masthead_bar.html' %}
+    <main id="main-content" class="workspace-content">
+      {% if messages %}<div class="flash-list" aria-live="polite">{% for message in messages %}<p class="flash {{ message.tags }}">{{ message }}</p>{% endfor %}</div>{% endif %}
+      {% block content %}{% endblock %}
+    </main>
   </div>
-
-  <!-- Mobile Fixed Bottom Navigation (<768px) -->
   {% include 'components/bottom_navigation.html' %}
-
-  <!-- Global Search Modal (⌘K / Ctrl+K) -->
   {% include 'components/search_modal.html' %}
-
-  <!-- Global Action Modals -->
-  {% include 'components/log_bayad_modal.html' %}
-  {% include 'components/log_utang_modal.html' %}
-
-  <!-- Global Toast Notification Container -->
-  <div id="global-toast-container" class="toast-container"></div>
-  {% endblock body_content %}
-
-  <!-- Global Scripts -->
-  <script src="{% static 'js/app.js' %}"></script>
-  {% block extra_scripts %}{% endblock %}
-</body>
-</html>
+  <dialog id="more-modal" class="app-dialog" aria-labelledby="more-title">
+    <div class="dialog-header"><h2 id="more-title">Your store</h2><button type="button" data-close-dialog aria-label="Close menu">Close</button></div>
+    <nav class="more-links" aria-label="More destinations">
+      <a href="{% url 'expiry' %}">Expiry tracker</a><a href="{% url 'reports:financial_reports' %}">Financial reports</a>
+      <a href="{% url 'reminders:sms_reminders' %}">Singilan paalala</a><a href="{% url 'profile:index' %}">Store profile</a>
+      <a href="{% url 'user_settings:index' %}">Settings & exports</a><a href="{% url 'landing:landing' %}">About TindaHan</a>
+      <a href="{% url 'login:logout' %}">Sign out</a>
+    </nav>
+  </dialog>
+  <div id="global-toast-container" class="app-toasts" aria-live="polite" aria-atomic="true"></div>
+</div>
+{% endblock %}
+<script src="{% static 'js/app.js' %}" defer></script>
+{% block extra_scripts %}{% endblock %}
+</body></html>

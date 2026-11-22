@@ -1,79 +1,11 @@
-<div id="search-modal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="search-modal-title">
-  <div class="modal-dialog modal-dialog-lg">
-    <!-- Header -->
-    <div class="modal-header">
-      <div style="display: flex; align-items: center; gap: 10px;">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary-orange, #FF6A1A)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-        <h2 id="search-modal-title" class="modal-title">Global Ledger Search</h2>
-      </div>
-      <button type="button" class="modal-close-btn" onclick="closeModal('search-modal')" aria-label="Close search modal">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-      </button>
-    </div>
-
-    <!-- Search Input -->
-    <div style="margin-bottom: 16px;">
-      <div class="input-wrapper">
-        <span class="input-leading-icon">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-        </span>
-        <input 
-          type="text" 
-          id="global-search-input" 
-          class="form-control" 
-          placeholder="Search customer name, paninda, or contact..."
-          autocomplete="off"
-          oninput="filterSearchResults(this.value)"
-        >
-      </div>
-    </div>
-
-    <!-- Results Container -->
-    <div style="max-height: 400px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px;" id="global-search-results">
-      <div style="font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-ink-muted); margin-top: 4px; padding-left: 2px;">
-        Customer Accounts & Ledgers
-      </div>
-      {% for customer in global_search_customers %}
-      <div class="ledger-row search-result-item" style="margin-bottom: 0; padding: 10px 14px; cursor: pointer;" onclick="window.location.href='{% url 'customers:customer_detail' customer.id %}';">
-        <div class="ledger-left">
-          <div class="avatar-badge" style="width: 32px; height: 32px; font-size: 13px;">{{ customer.avatar_letter }}</div>
-          <div>
-            <div class="ledger-name-row">
-              <span class="ledger-title search-item-text" style="font-size: 13px;">{{ customer.name }}</span>
-              {% if customer.nickname %}
-                <span class="tag-nickname search-item-sub">({{ customer.nickname }})</span>
-              {% endif %}
-            </div>
-            <p class="ledger-meta" style="color: var(--color-ink-muted);">
-              {{ customer.phone }} • Due {{ customer.due_date }}
-            </p>
-          </div>
-        </div>
-        <div class="ledger-right">
-          <div class="ledger-amount" style="font-size: 15px; color: var(--color-primary-orange);">
-            ₱{{ customer.running_balance|floatformat:2 }}
-          </div>
-          <span class="ledger-subtext">Limit ₱{{ customer.credit_limit|floatformat:0 }}</span>
-        </div>
-      </div>
-      {% endfor %}
-    </div>
-
-    <!-- Modal Footer Helper -->
-    <div class="modal-footer" style="justify-content: space-between; align-items: center; padding-top: 14px; font-size: 11px; color: var(--color-ink-muted);">
-      <span>Tip: Use <kbd style="padding: 2px 5px; background: rgba(0,0,0,0.06); border-radius: 4px;">Esc</kbd> to close</span>
-      <button type="button" class="btn btn-secondary btn-sm" onclick="closeModal('search-modal')">Close</button>
-    </div>
-  </div>
+<dialog id="search-modal" class="app-dialog" aria-labelledby="search-title">
+  <div class="dialog-header">
+<h2 id="search-title">Search your store</h2>
+<button type="button" data-close-dialog>Close</button>
 </div>
-
-<script>
-function filterSearchResults(query) {
-  const q = query.toLowerCase().trim();
-  const items = document.querySelectorAll('#global-search-results .search-result-item');
-  items.forEach(item => {
-    const text = item.innerText.toLowerCase();
-    item.style.display = text.includes(q) ? 'flex' : 'none';
-  });
-}
-</script>
+  <label class="sr-only" for="global-search-input">Customer, product, SKU or phone</label>
+  <input id="global-search-input" type="search" placeholder="Customer, product, SKU or phone" data-search-url="{% url 'search' %}" autocomplete="off" autofocus>
+  <div id="global-search-results" class="search-results" aria-live="polite">
+<p class="muted">Start typing to find a customer or product.</p>
+</div>
+</dialog>

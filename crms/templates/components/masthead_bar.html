@@ -1,43 +1,10 @@
-<header class="masthead">
-  <!-- Sub-bar: Date & Volume Info -->
-  <div class="masthead-subbar">
-    <div class="masthead-sub-left">
-      <span class="live-dot live-dot-pulse"></span>
-      <span>{{ global_store_profile.ledger_volume }}</span>
-      <span class="dot-sep">·</span>
-      <span>{{ global_store_profile.address }}</span>
-    </div>
-    <div class="masthead-sub-right">
-      <span>{{ global_store_profile.current_date_display }}</span>
-    </div>
-  </div>
-
-  <!-- Main Masthead Row -->
-  <div class="masthead-main">
-    <div>
-      <h1 class="masthead-title">
-        {% block page_heading %}{{ global_store_profile.store_name }}{% endblock %}
-      </h1>
-      <p class="masthead-subtitle">
-        {% block page_subheading %}{{ global_store_profile.owner_name }} • Sari-Sari Store Ledger{% endblock %}
-      </p>
-    </div>
-    
-    <div class="masthead-actions">
-      <!-- Search Button -->
-      <button type="button" class="btn btn-secondary btn-icon-only" onclick="openModal('search-modal')" title="Global Search (⌘K)" aria-label="Global Search">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-      </button>
-
-      <!-- Profile Link -->
-      <a href="{% url 'profile:index' %}" class="btn btn-secondary btn-icon-only" title="Store Profile" aria-label="Store Profile" style="text-decoration: none;">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-      </a>
-
-      <!-- Settings Link -->
-      <a href="{% url 'user_settings:index' %}" class="btn btn-secondary btn-icon-only" title="Store Settings" aria-label="Store Settings" style="text-decoration: none;">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
-      </a>
-    </div>
-  </div>
+{% load ledger_ui %}<header class="workspace-topbar">
+<a class="masthead-identity" href="{% url 'home:index' %}">
+<span class="brand-mark mobile-brand">t.</span>
+<span>{{ global_store_profile.store_name }}<small>TindaHan Ledger</small>
+</span>
+</a>
+<time class="topbar-date">{{ global_store_profile.current_date_display }}</time>
+<button class="icon-button" type="button" data-modal="search-modal" aria-label="Search customers and products">{% include 'components/icon.html' with name='imgIconMagnifyingGlass' %}</button>
+<a class="avatar topbar-avatar" href="{% url 'profile:index' %}" aria-label="Store profile">{{ global_store_profile.owner_name|initials }}</a>
 </header>

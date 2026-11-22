@@ -1,39 +1,12 @@
-<nav class="bottom-nav">
-  <div class="bottom-nav-grid">
-    <!-- Home -->
-    <a href="{% url 'home:index' %}" class="bottom-tab {% if active_nav == 'home' %}active{% endif %}">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
-      <span>Home</span>
-      {% if active_nav == 'home' %}<div class="tab-indicator"></div>{% endif %}
-    </a>
-    
-    <!-- Utang Ledger -->
-    <a href="{% url 'customers:customer_list' %}" class="bottom-tab {% if active_nav == 'utang' %}active{% endif %}">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
-      <span>Utang</span>
-      {% if active_nav == 'utang' %}<div class="tab-indicator"></div>{% endif %}
-    </a>
-    
-    <!-- Center Action Pill: Log Utang Modal Trigger -->
-    <button type="button" class="bottom-tab-primary" onclick="openModal('log-utang-modal')">
-      <div class="tab-pill-icon">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-      </div>
-      <span class="tab-label-pos">Utang</span>
-    </button>
-    
-    <!-- Reports -->
-    <a href="{% url 'reports:index' %}" class="bottom-tab {% if active_nav == 'reports' %}active{% endif %}">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
-      <span>Reports</span>
-      {% if active_nav == 'reports' %}<div class="tab-indicator"></div>{% endif %}
-    </a>
-    
-    <!-- Settings -->
-    <a href="{% url 'user_settings:index' %}" class="bottom-tab {% if active_nav == 'settings' %}active{% endif %}">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
-      <span>Settings</span>
-      {% if active_nav == 'settings' %}<div class="tab-indicator"></div>{% endif %}
-    </a>
-  </div>
+<nav class="mobile-navigation" aria-label="Main navigation">
+<a href="{% url 'home:index' %}" {% if active_nav == 'home' %}aria-current="page"{% endif %}>{% include 'components/icon.html' with name='imgPhosphorHouse' %}<span>Home</span>
+</a>
+<a href="{% url 'customers:customer_list' %}" {% if active_nav == 'utang' %}aria-current="page"{% endif %}>{% include 'components/icon.html' with name='imgPhosphorNotebook' %}<span>Utang</span>
+</a>
+<a href="{% url 'pos:pos_terminal' %}" {% if active_nav == 'pos' %}aria-current="page"{% endif %}>{% include 'components/icon.html' with name='imgPhosphorPlus' %}<span>POS</span>
+</a>
+<a href="{% url 'inventory:inventory_list' %}" {% if active_nav == 'inventory' %}aria-current="page"{% endif %}>{% include 'components/icon.html' with name='imgPhosphorPackage' %}<span>Stock</span>
+</a>
+<button type="button" data-modal="more-modal" {% if active_nav == 'expiry' or active_nav == 'reports' or active_nav == 'reminders' or active_nav == 'profile' or active_nav == 'settings' %}aria-current="page"{% endif %}>{% include 'components/icon.html' with name='imgPhosphorList' %}<span>More</span>
+</button>
 </nav>
