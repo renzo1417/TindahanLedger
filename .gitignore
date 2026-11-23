@@ -63,6 +63,7 @@ test-results/
 .coverage
 htmlcov/
 .pytest_cache/
+.cache/
 
 # ==========================================
 # IDEs, Editors & OS
