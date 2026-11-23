@@ -1,134 +1,88 @@
-from django.test import TestCase, Client
+"""Public previews must never invent records or leak another store's data."""
+from decimal import Decimal
+from uuid import uuid4
+from django.contrib.auth import get_user_model
+from django.test import TestCase
 from django.urls import reverse
+from apps.home.models import Customer, Product, SalesTransaction
+from apps.home.services import current_store, create_customer, create_product, checkout
 
 
 class LandingPageSmokeTests(TestCase):
-    """
-    Acceptance smoke tests for the public landing page (/welcome/).
-    Verifies route resolution, template rendering, brand copy,
-    coherent arithmetic, account link presence, and zero database mutations.
-    """
-
-    def setUp(self):
-        self.client = Client()
-
-    def test_landing_route_resolves_and_renders_publicly(self):
-        """Landing page at / and /welcome/ renders with HTTP 200 without login."""
+    def test_public_routes_and_account_links(self):
         for route in ('/', '/welcome/'):
             response = self.client.get(route)
             self.assertEqual(response.status_code, 200)
             self.assertTemplateUsed(response, 'landing/landing.html')
+            for name in ('login:login', 'register:register'):
+                self.assertContains(response, f'href="{reverse(name)}"')
+            for anchor in ('ledger-demo', 'inventory-story', 'daily-overview', 'faq'):
+                self.assertContains(response, f'href="#{anchor}"')
 
-    def test_reverse_landing_url(self):
-        """'landing:landing' reverses to / and 'landing:welcome' reverses to /welcome/."""
-        self.assertEqual(reverse('landing:landing'), '/')
-        self.assertEqual(reverse('landing:welcome'), '/welcome/')
-
-    def test_auth_return_links_and_versioned_landing_assets(self):
-        """Auth return links load the redesigned template with fresh asset URLs."""
-        landing_url = reverse('landing:landing')
-        for auth_url in (reverse('login:login'), reverse('register:register')):
-            response = self.client.get(auth_url)
-            self.assertContains(response, f'href="{landing_url}"')
-            self.assertContains(response, 'id="back-to-landing-btn"')
-        response = self.client.get(landing_url)
-        self.assertContains(response, '/static/css/landing/landing.css?v=lively-1')
-        self.assertContains(response, '/static/js/landing/landing.js?v=lively-1')
-
-    def test_brand_copy_and_product_story(self):
-        """The page explains the product in the redesigned Filipino voice."""
-        response = self.client.get('/welcome/')
-        content = response.content.decode('utf-8')
-
-        # Hero copy
-        self.assertIn("PARA SA ARAW-ARAW NA TINDAHAN", content)
-        self.assertIn("Bawat galaw.", content)
-        self.assertIn("Malinaw.", content)
-        self.assertIn("Utang, bayad, at stock sa isang talaan", content)
-
-        # Demo branding & sample labeling
-        self.assertIn("Sample ledger · Demo only", content)
-        self.assertIn("Aling Rosa", content)
-
-        # Inventory story
-        self.assertIn("dapat unahin.", content)
-        self.assertIn("Mas maagang expiry, mas maagang ibenta.", content)
-        self.assertIn("Pancit Canton", content)
-        self.assertIn("BT-2026-081", content)
-        self.assertIn("BT-2026-095", content)
-        self.assertIn("Expired na", content)
-
-        # Daily overview & coherent accounting
-        self.assertIn("Kita ang galaw", content)
-        self.assertIn("470.00", content)  # Sales recorded: ₱470.00
-        self.assertIn("270.00", content)  # Payments received: ₱270.00
-
-        # FAQ items
-        self.assertIn("Para kanino ang TindaHan Ledger?", content)
-        self.assertIn("Totoong customer data ba ang demo?", content)
-        self.assertIn("Paano magsisimula?", content)
-
-        # Closing CTA
-        self.assertIn("Mas maayos ang", content)
-
-    def test_static_demo_is_complete_without_javascript(self):
-        response = self.client.get('/welcome/')
-        self.assertContains(response, 'class="lp-stage-controls" hidden')
-        self.assertContains(response, 'id="demo-balance">₱200.00')
-        self.assertContains(response, '₱350.00 − ₱150.00 = ₱200.00')
-        self.assertContains(response, 'Huwag ibenta')
-
-    def test_anonymous_landing_does_not_query_or_mutate_records(self):
-        """The public demonstrations render independently of store records."""
+    def test_anonymous_preview_neither_queries_nor_invents_business_records(self):
+        before = (Customer.objects.count(), Product.objects.count(), SalesTransaction.objects.count())
         with self.assertNumQueries(0):
-            response = self.client.get('/welcome/')
+            response = self.client.get('/')
+        self.assertContains(response, 'New accounts start empty.')
+        self.assertContains(response, 'Walang customer data sa public preview')
+        for sample in ('Aling Rosa', 'Aling Nena', 'Pancit Canton', '470.00', '270.00', 'overview.webp'):
+            self.assertNotContains(response, sample)
+        self.assertEqual(before, (Customer.objects.count(), Product.objects.count(), SalesTransaction.objects.count()))
+
+    def test_public_dashboard_preview_is_empty_and_can_only_be_embedded_on_this_site(self):
+        with self.assertNumQueries(0):
+            response = self.client.get(reverse('landing:dashboard_preview'))
         self.assertEqual(response.status_code, 200)
-        self.assertNotContains(response, 'alingnena.tindahan@gmail.com')
-        self.assertNotContains(response, '+63 917 555 0192')
+        self.assertEqual(response.headers['X-Frame-Options'], 'SAMEORIGIN')
+        self.assertTemplateUsed(response, 'home/home.html')
+        self.assertContains(response, 'Your tindahan')
+        self.assertContains(response, '₱0.00')
+        self.assertContains(response, 'A fresh page for today.')
+        self.assertNotContains(response, 'Demo Customer')
 
-    def test_inventory_priority_and_expired_stock_are_coherent(self):
-        """Expiry ordering differs from arrival order and excludes expired stock."""
-        response = self.client.get('/welcome/')
-        batches = response.context['inventory_batches']
-        sellable = [batch for batch in batches if batch['is_sellable']]
-        self.assertEqual([batch['days_remaining'] for batch in sellable], [3, 24, 60])
-        self.assertEqual([batch['arrival_order'] for batch in sellable], [3, 2, 1])
-        expired = [batch for batch in batches if not batch['is_sellable']]
-        self.assertEqual(len(expired), 1)
-        self.assertLess(expired[0]['days_remaining'], 0)
-        self.assertContains(response, 'aria-label="Expired sample stock"')
+    def test_authenticated_preview_uses_only_the_current_stores_saved_records(self):
+        owner = get_user_model().objects.create_user(username='preview-owner')
+        other = get_user_model().objects.create_user(username='another-owner')
+        store, other_store = current_store(owner), current_store(other)
+        store.store_name = 'My saved shop'
+        store.save()
+        customer = create_customer(store, dict(name='My saved customer', credit_limit=Decimal('500')))
+        create_customer(other_store, dict(name='Private other customer', credit_limit=Decimal('500')))
+        product = create_product(store, dict(name='My saved product', category_name='My category',
+            unit='pc', selling_price=Decimal('17'), cost_price=Decimal('9'),
+            low_stock_threshold=1, has_expiry=False, stock_quantity=5))
+        create_product(other_store, dict(name='Private other product', unit='pc',
+            selling_price=Decimal('99'), cost_price=Decimal('50'), low_stock_threshold=1,
+            has_expiry=False, stock_quantity=4))
+        checkout(store, {'token': str(uuid4()), 'payment_method': 'Cash', 'cash_tendered': '20',
+            'items': [{'product_id': product.pk, 'quantity': 1}]})
+        self.client.force_login(owner)
+        before = (Customer.objects.count(), Product.objects.count(), SalesTransaction.objects.count())
+        response = self.client.get('/')
+        dashboard = self.client.get(reverse('landing:dashboard_preview'))
+        self.assertContains(dashboard, store.store_name)
+        self.assertContains(dashboard, '₱17.00')
+        self.assertNotContains(dashboard, 'Private other')
+        self.assertContains(response, customer.name)
+        self.assertContains(response, product.name)
+        self.assertContains(response, '₱17.00')
+        self.assertNotContains(response, 'Private other')
+        self.assertEqual(before, (Customer.objects.count(), Product.objects.count(), SalesTransaction.objects.count()))
 
-    def test_demo_arithmetic_consistency(self):
-        """Verifies coherent demo arithmetic: ₱350 debt - ₱150 payment = ₱200 balance."""
-        response = self.client.get('/welcome/')
-        content = response.content.decode('utf-8')
+    def test_empty_authenticated_store_has_no_example_rows(self):
+        owner = get_user_model().objects.create_user(username='empty-preview')
+        self.client.force_login(owner)
+        response = self.client.get('/')
+        self.assertContains(response, '₱0.00')
+        self.assertNotContains(response, 'Aling Rosa')
+        self.assertEqual(current_store(owner).products.count(), 0)
 
-        self.assertIn("250.00", content)  # Rice purchase
-        self.assertIn("100.00", content)  # Store items purchase
-        self.assertIn("350.00", content)  # Total Utang
-        self.assertIn("150.00", content)  # Bayad
-        self.assertIn("200.00", content)  # Outstanding balance
-
-    def test_account_and_anchor_links_present(self):
-        """Resolves login and registration links correctly in rendered HTML."""
-        response = self.client.get('/welcome/')
-        content = response.content.decode('utf-8')
-
-        login_url = reverse('login:login')
-        register_url = reverse('register:register')
-
-        self.assertIn(f'href="{login_url}"', content)
-        self.assertIn(f'href="{register_url}"', content)
-        self.assertIn('href="#ledger-demo"', content)
-        self.assertIn('href="#inventory-story"', content)
-        self.assertIn('href="#daily-overview"', content)
-        self.assertIn('href="#faq"', content)
-
-    def test_existing_dashboard_routes_unaffected(self):
-        """Dashboard overview routes 'home:index' and 'home:home' resolve to '/home/' and remain functional."""
+    def test_dashboard_still_requires_login(self):
         self.assertEqual(reverse('home:index'), '/home/')
-        self.assertEqual(reverse('home:home'), '/home/')
+        self.assertRedirects(self.client.get('/home/'), '/login/?next=/home/', fetch_redirect_response=False)
 
-        resp_home = self.client.get('/home/')
-        self.assertEqual(resp_home.status_code, 200)
-        self.assertTemplateUsed(resp_home, 'home/home.html')
+    def test_authentication_templates_and_controls_are_retained(self):
+        for route in ('/login/', '/register/'):
+            response = self.client.get(route)
+            self.assertContains(response, 'id="back-to-landing-btn"')
+            self.assertContains(response, 'class="container-auth"')
