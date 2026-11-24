@@ -1,47 +1,178 @@
 /* ==========================================================================
    TindaHan Ledger - Register Feature Stylesheet
-   Vertical Slice: static/css/register/register.css
+   Aligned with the Figma TindaHan Ledger design system
    ========================================================================== */
 
-.auth-steps {
+.container-auth .auth-steps {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
+  gap: 8px;
   margin-bottom: 24px;
+  padding: 0 0 18px;
+  border-bottom: 1px solid var(--auth-line);
 }
 
-.auth-step {
-  display: flex;
+.container-auth .auth-step {
+  display: inline-flex;
   align-items: center;
-  gap: 6px;
-  font-size: 12px;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 9999px;
+  background-color: var(--auth-canvas);
+  border: 1px solid var(--auth-line);
+  font-family: var(--auth-font);
+  font-size: 13px;
   font-weight: 600;
-  color: var(--color-ink-muted, rgba(18, 18, 18, 0.55));
+  color: var(--auth-muted);
+  transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
 }
 
-.auth-step.active {
-  color: var(--color-primary-orange, #FF6A1A);
-}
-
-.auth-step-number {
+.container-auth .auth-step-number {
   width: 22px;
   height: 22px;
-  border-radius: 50%;
-  background-color: rgba(18, 18, 18, 0.08);
+  border-radius: 9999px;
+  background-color: var(--auth-subtle);
+  color: var(--auth-muted);
+  font-family: var(--auth-mono);
+  font-size: 11px;
+  font-weight: 600;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 11px;
+  flex-shrink: 0;
 }
 
-.auth-step.active .auth-step-number {
-  background-color: var(--color-primary-orange, #FF6A1A);
-  color: #FFFFFF;
+.container-auth .auth-step-label {
+  font-family: var(--auth-font);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--auth-muted);
 }
 
-.auth-step-connector {
-  width: 36px;
+.container-auth .auth-step.active {
+  background-color: var(--auth-soft-orange);
+  border-color: var(--auth-soft-orange-border);
+  color: var(--auth-ink);
+}
+
+.container-auth .auth-step.active .auth-step-number {
+  background-color: var(--auth-accent);
+  color: var(--auth-ink);
+}
+
+.container-auth .auth-step.active .auth-step-label {
+  color: var(--auth-ink);
+}
+
+.container-auth .auth-step.completed {
+  background-color: var(--auth-success-bg);
+  border-color: var(--auth-success-border);
+  color: var(--auth-success-ink);
+}
+
+.container-auth .auth-step.completed .auth-step-number {
+  background-color: var(--auth-success-ink);
+  color: #ffffff;
+}
+
+.container-auth .auth-step.completed .auth-step-label {
+  color: var(--auth-success-ink);
+}
+
+.container-auth .auth-step-connector {
+  width: 32px;
   height: 2px;
-  background-color: var(--color-border-hairline, rgba(18, 18, 18, 0.06));
+  background-color: var(--auth-line);
+  border-radius: 9999px;
+  margin: 0;
+}
+
+/* Password Rules, Strength Meter, and Match Feedback */
+.container-auth .password-rule-hint {
+  font-family: var(--auth-font);
+  font-size: 12px;
+  color: var(--auth-muted);
+  margin-top: 8px;
+}
+
+.container-auth .password-rule-hint svg {
+  color: var(--auth-subtle-ink);
+}
+
+.container-auth .password-rule-hint.rule-met,
+.container-auth .password-rule-hint.rule-met svg {
+  color: var(--auth-success-ink);
+}
+
+.container-auth .password-strength-bar {
+  height: 5px;
+  background-color: var(--auth-subtle);
+  border-radius: 9999px;
+}
+
+.container-auth .password-strength-fill {
+  border-radius: 9999px;
+}
+
+.container-auth .password-strength-label {
+  font-family: var(--auth-font);
+  font-size: 12px;
+  font-weight: 600;
+  min-width: 78px;
+}
+
+.container-auth .password-match-indicator {
+  font-family: var(--auth-font);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.container-auth .password-match-indicator.match-success,
+.container-auth .password-match-indicator.match-success svg {
+  color: var(--auth-success-ink);
+}
+
+.container-auth .password-match-indicator.match-fail,
+.container-auth .password-match-indicator.match-fail svg {
+  color: var(--auth-danger-ink);
+}
+
+/* Multi-Step Action Row */
+.container-auth .form-step-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.container-auth .auth-step-back-btn {
+  min-width: 108px;
+}
+
+.container-auth .auth-step-submit-btn {
+  flex: 1;
+}
+
+@media (max-width: 480px) {
+  .container-auth .auth-steps {
+    gap: 6px;
+  }
+
+  .container-auth .auth-step {
+    padding: 5px 10px;
+    font-size: 12px;
+  }
+
+  .container-auth .auth-step-connector {
+    width: 18px;
+  }
+
+  .container-auth .form-step-actions {
+    flex-direction: column-reverse;
+  }
+
+  .container-auth .auth-step-back-btn,
+  .container-auth .auth-step-submit-btn {
+    width: 100%;
+  }
 }

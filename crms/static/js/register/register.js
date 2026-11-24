@@ -146,11 +146,11 @@ document.addEventListener('DOMContentLoaded', () => {
       
       const levels = [
         { width: '0%', color: 'transparent', label: '' },
-        { width: '20%', color: '#EF4444', label: 'Too weak' },
-        { width: '40%', color: '#F59E0B', label: 'Weak' },
-        { width: '60%', color: '#F59E0B', label: 'Fair' },
-        { width: '80%', color: '#10B981', label: 'Strong' },
-        { width: '100%', color: '#059669', label: 'Very strong' },
+        { width: '20%', color: '#a3301e', label: 'Too weak' },
+        { width: '40%', color: '#be491c', label: 'Weak' },
+        { width: '60%', color: '#eb733c', label: 'Fair' },
+        { width: '80%', color: '#16674f', label: 'Strong' },
+        { width: '100%', color: '#0f523e', label: 'Very strong' },
       ];
       
       const level = val.length === 0 ? levels[0] : levels[Math.min(score, 5)];
