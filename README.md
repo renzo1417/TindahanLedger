@@ -133,16 +133,19 @@ checkouts. Screenshots and the report go into ignored `.cache/ui-check/`.
 The application follows the Tindahan Ledger Figma design: warm paper surfaces,
 orange and dark summary panels, a dark desktop sidebar and mobile navigation,
 and self-hosted Bricolage Grotesque and Geist Mono fonts. Login and registration
-retain their existing appearance. Shared Django components carry navigation,
-forms, dialogs, and feedback. Daily operations stay immediate; reduced-motion
-and keyboard shortcuts skip dialog movement.
+share the same Figma design tokens, storefront brand mark, and calm card surfaces.
+Shared Django components carry navigation, forms, dialogs, and feedback. Daily
+operations stay immediate; reduced-motion and keyboard shortcuts skip dialog
+movement.
 
 The landing page uses the Figma desktop, tablet, and mobile layouts and supplied
-illustrations. Its dashboard preview renders the current dashboard: public
-visitors see an empty store, while signed-in visitors see only their saved store
-records. Empty accounts show empty states; connection failures show a retry page
-instead of invented records or totals. Product illustrations follow the saved
-unit (packet, can, or sachet), with a neutral package icon for other units.
+illustrations. Public visitors see clearly labeled, in-memory illustrative sample
+previews (zero database queries or mutations) across the dashboard preview, utang
+ledger, stock-priority toggle, and daily audit cards, while signed-in visitors see
+only their saved store records. Empty accounts show empty states; connection
+failures show a retry page instead of invented records or totals. Product
+illustrations follow the saved unit (packet, can, or sachet), with a neutral
+package icon for other units.
 
 | Before | After | Why |
 | --- | --- | --- |

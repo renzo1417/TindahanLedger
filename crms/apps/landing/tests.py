@@ -1,11 +1,13 @@
-"""Public previews must never invent records or leak another store's data."""
+"""Public previews use in-memory Figma samples (0 DB queries/writes) and never leak another store's data."""
 from decimal import Decimal
 from uuid import uuid4
+
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
+
 from apps.home.models import Customer, Product, SalesTransaction
-from apps.home.services import current_store, create_customer, create_product, checkout
+from apps.home.services import checkout, create_customer, create_product, current_store
 
 
 class LandingPageSmokeTests(TestCase):
@@ -19,25 +21,46 @@ class LandingPageSmokeTests(TestCase):
             for anchor in ('ledger-demo', 'inventory-story', 'daily-overview', 'faq'):
                 self.assertContains(response, f'href="#{anchor}"')
 
-    def test_anonymous_preview_neither_queries_nor_invents_business_records(self):
+    def test_anonymous_preview_renders_figma_sample_without_db_queries_or_writes(self):
         before = (Customer.objects.count(), Product.objects.count(), SalesTransaction.objects.count())
         with self.assertNumQueries(0):
             response = self.client.get('/')
+        self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'New accounts start empty.')
-        self.assertContains(response, 'Walang customer data sa public preview')
-        for sample in ('Aling Rosa', 'Aling Nena', 'Pancit Canton', '470.00', '270.00', 'overview.webp'):
-            self.assertNotContains(response, sample)
+        self.assertContains(response, 'Halimbawang tala · Sample lamang')
+        for sample in (
+            '+₱150.00', '3 araw na lang', 'Aling Rosa', 'Bigas', '₱250.00',
+            '-₱150.00', '₱200.00', 'Pancit Canton', 'Sardinas', '3 entries',
+            '₱470.00', '₱270.00',
+        ):
+            self.assertContains(response, sample)
+        self.assertNotContains(response, '>—<')
         self.assertEqual(before, (Customer.objects.count(), Product.objects.count(), SalesTransaction.objects.count()))
 
-    def test_public_dashboard_preview_is_empty_and_can_only_be_embedded_on_this_site(self):
+    def test_public_stock_order_toggle_reorders_sample_batches_and_handles_invalid_param(self):
+        with self.assertNumQueries(0):
+            arrival = self.client.get('/?order=arrival')
+        self.assertEqual(arrival.status_code, 200)
+        self.assertContains(arrival, 'BT-2026-072 · Estante B-2')
+        self.assertContains(arrival, 'Unahin ang unang dumating na batch')
+        self.assertContains(arrival, 'data-stock-order="arrival" aria-pressed="true"')
+
+        with self.assertNumQueries(0):
+            fallback = self.client.get('/?order=invalid')
+        self.assertEqual(fallback.status_code, 200)
+        self.assertContains(fallback, 'BT-2026-081 · Estante A-1')
+        self.assertContains(fallback, 'Unahin ang pinakamalapit na expiry')
+        self.assertContains(fallback, 'data-stock-order="expiry" aria-pressed="true"')
+
+    def test_public_dashboard_preview_uses_sample_data_without_queries_and_sameorigin_header(self):
         with self.assertNumQueries(0):
             response = self.client.get(reverse('landing:dashboard_preview'))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.headers['X-Frame-Options'], 'SAMEORIGIN')
         self.assertTemplateUsed(response, 'home/home.html')
-        self.assertContains(response, 'Your tindahan')
-        self.assertContains(response, '₱0.00')
-        self.assertContains(response, 'A fresh page for today.')
+        for sample in ('Aling Nena', '₱1,620.00', '₱1,450.00', 'Pancit Canton', 'Aling Rosa', 'Mang Ben'):
+            self.assertContains(response, sample)
+        self.assertNotContains(response, 'A fresh page for today.')
         self.assertNotContains(response, 'Demo Customer')
 
     def test_authenticated_preview_uses_only_the_current_stores_saved_records(self):
@@ -63,10 +86,12 @@ class LandingPageSmokeTests(TestCase):
         self.assertContains(dashboard, store.store_name)
         self.assertContains(dashboard, '₱17.00')
         self.assertNotContains(dashboard, 'Private other')
+        self.assertNotContains(dashboard, 'Aling Nena')
         self.assertContains(response, customer.name)
         self.assertContains(response, product.name)
         self.assertContains(response, '₱17.00')
         self.assertNotContains(response, 'Private other')
+        self.assertNotContains(response, 'Aling Rosa')
         self.assertEqual(before, (Customer.objects.count(), Product.objects.count(), SalesTransaction.objects.count()))
 
     def test_empty_authenticated_store_has_no_example_rows(self):
@@ -81,8 +106,25 @@ class LandingPageSmokeTests(TestCase):
         self.assertEqual(reverse('home:index'), '/home/')
         self.assertRedirects(self.client.get('/home/'), '/login/?next=/home/', fetch_redirect_response=False)
 
-    def test_authentication_templates_and_controls_are_retained(self):
+    def test_authentication_templates_and_controls_are_retained_and_consistent(self):
         for route in ('/login/', '/register/'):
             response = self.client.get(route)
+            self.assertEqual(response.status_code, 200)
             self.assertContains(response, 'id="back-to-landing-btn"')
             self.assertContains(response, 'class="container-auth"')
+            self.assertContains(response, 'imgPhosphorStorefront.svg')
+            self.assertContains(response, 'cy="12" r="3"')
+            self.assertNotContains(response, 'cy="3"')
+        login_page = self.client.get('/login/')
+        self.assertNotContains(login_page, 'automate Singilan')
+        step2_error = self.client.post('/register/', {
+            'store_name': 'Sari Store Test',
+            'owner_name': 'Maria Clara',
+            'phone': '09171234567',
+            'password': 'Strong#Password2026',
+            'confirm_password': 'Mismatch#Password2026',
+        })
+        self.assertEqual(step2_error.status_code, 200)
+        self.assertContains(step2_error, 'data-has-step2-errors="true"')
+        self.assertContains(step2_error, 'Sari Store Test')
+        self.assertContains(step2_error, 'Passwords do not match.')
