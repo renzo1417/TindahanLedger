@@ -73,9 +73,9 @@ Para sa araw araw ng iyong tindahan.</p><div class="fd-149_4238" data-figma-node
 <div class="fd-149_4262" data-figma-node="149:4262">
 <div class="fd-149_4263" data-figma-node="149:4263"><img src="{% static 'images/figma/imgPhosphorPackage1.svg' %}" width="20" height="20" alt="" aria-hidden="true"></div><p class="fd-149_4265" data-figma-node="149:4265">Unahing ibenta</p>
 </div>
-<p class="fd-149_4266" data-figma-node="149:4266">{% if preview_featured and preview_featured.days_left != None %}{{ preview_featured.days_left }} araw na lang{% else %}Petsa ng expiry{% endif %}</p><p class="fd-149_4267" data-figma-node="149:4267">{% if preview_featured %}{{ preview_featured.product.name }} · {{ preview_featured.quantity }} {{ preview_featured.product.unit }}{% else %}Mula sa iyong stock records{% endif %}</p>
+<p class="fd-149_4266" data-figma-node="149:4266">{% if preview_hero_featured and preview_hero_featured.days_left != None %}{{ preview_hero_featured.days_left }} araw na lang{% else %}Petsa ng expiry{% endif %}</p><p class="fd-149_4267" data-figma-node="149:4267">{% if preview_hero_featured %}{{ preview_hero_featured.product.name }} · {{ preview_hero_featured.quantity }} {{ preview_hero_featured.product.unit }}{% else %}Mula sa iyong stock records{% endif %}</p>
 </div>
-<p class="fd-149_4268" data-figma-node="149:4268">Bagong dashboard · Sarili mong talaan</p>
+<p class="fd-149_4268" data-figma-node="149:4268">{% if preview_store %}Bagong dashboard · Sarili mong talaan{% else %}Halimbawang preview ng dashboard · Sample lamang{% endif %}</p>
 </div>
 <div class="fd-149_4269" data-figma-node="149:4269">
 <div class="fd-149_4270" data-figma-node="149:4270">
@@ -134,19 +134,19 @@ kita ang buong kuwento ng bawat suki.</p>
 </div>
 <div class="fd-149_4306 fd-ledger-slot {% if preview_entries.0.transaction_type == 'bayad' %}fd-payment-row{% endif %}" data-figma-node="149:4306">
 <div class="fd-I149_4306_149_5262" data-figma-node="I149:4306;149:5262">
-<p class="fd-I149_4306_149_5263" data-figma-node="I149:4306;149:5263">{% if preview_entries.0 %}{{ preview_entries.0.items_summary|default:preview_entries.0.type_label }}{% else %}—{% endif %}</p><p class="fd-I149_4306_149_5264" data-figma-node="I149:4306;149:5264">{% if preview_entries.0 %}₱{{ preview_entries.0.amount|floatformat:'2g' }}{% else %}—{% endif %}</p>
+<p class="fd-I149_4306_149_5263" data-figma-node="I149:4306;149:5263">{% if preview_entries.0 %}{{ preview_entries.0.items_summary|default:preview_entries.0.type_label }}{% else %}—{% endif %}</p><p class="fd-I149_4306_149_5264" data-figma-node="I149:4306;149:5264">{% if preview_entries.0 %}{% if preview_entries.0.transaction_type == 'bayad' %}-{% endif %}₱{{ preview_entries.0.amount|floatformat:'2g' }}{% else %}—{% endif %}</p>
 </div>
 <p class="fd-I149_4306_149_5265" data-figma-node="I149:4306;149:5265">{% if preview_entries.0 %}{{ preview_entries.0.transaction_date|date:'g:i A' }} · {{ preview_entries.0.type_label }}{% else %}Wala pang tala{% endif %}</p>
 </div>
 <div class="fd-149_4307 fd-ledger-slot {% if preview_entries.1.transaction_type == 'bayad' %}fd-payment-row{% endif %}" data-figma-node="149:4307">
 <div class="fd-I149_4307_149_5262" data-figma-node="I149:4307;149:5262">
-<p class="fd-I149_4307_149_5263" data-figma-node="I149:4307;149:5263">{% if preview_entries.1 %}{{ preview_entries.1.items_summary|default:preview_entries.1.type_label }}{% else %}—{% endif %}</p><p class="fd-I149_4307_149_5264" data-figma-node="I149:4307;149:5264">{% if preview_entries.1 %}₱{{ preview_entries.1.amount|floatformat:'2g' }}{% else %}—{% endif %}</p>
+<p class="fd-I149_4307_149_5263" data-figma-node="I149:4307;149:5263">{% if preview_entries.1 %}{{ preview_entries.1.items_summary|default:preview_entries.1.type_label }}{% else %}—{% endif %}</p><p class="fd-I149_4307_149_5264" data-figma-node="I149:4307;149:5264">{% if preview_entries.1 %}{% if preview_entries.1.transaction_type == 'bayad' %}-{% endif %}₱{{ preview_entries.1.amount|floatformat:'2g' }}{% else %}—{% endif %}</p>
 </div>
 <p class="fd-I149_4307_149_5265" data-figma-node="I149:4307;149:5265">{% if preview_entries.1 %}{{ preview_entries.1.transaction_date|date:'g:i A' }} · {{ preview_entries.1.type_label }}{% else %}Wala pang tala{% endif %}</p>
 </div>
 <div class="fd-149_4308 fd-ledger-slot {% if preview_entries.2.transaction_type == 'bayad' %}fd-payment-row{% endif %}" data-figma-node="149:4308">
 <div class="fd-I149_4308_149_5267" data-figma-node="I149:4308;149:5267">
-<p class="fd-I149_4308_149_5268" data-figma-node="I149:4308;149:5268">{% if preview_entries.2 %}{{ preview_entries.2.items_summary|default:preview_entries.2.type_label }}{% else %}—{% endif %}</p><p class="fd-I149_4308_149_5269" data-figma-node="I149:4308;149:5269">{% if preview_entries.2 %}₱{{ preview_entries.2.amount|floatformat:'2g' }}{% else %}—{% endif %}</p>
+<p class="fd-I149_4308_149_5268" data-figma-node="I149:4308;149:5268">{% if preview_entries.2 %}{{ preview_entries.2.items_summary|default:preview_entries.2.type_label }}{% else %}—{% endif %}</p><p class="fd-I149_4308_149_5269" data-figma-node="I149:4308;149:5269">{% if preview_entries.2 %}{% if preview_entries.2.transaction_type == 'bayad' %}-{% endif %}₱{{ preview_entries.2.amount|floatformat:'2g' }}{% else %}—{% endif %}</p>
 </div>
 <p class="fd-I149_4308_149_5270" data-figma-node="I149:4308;149:5270">{% if preview_entries.2 %}{{ preview_entries.2.transaction_date|date:'g:i A' }} · {{ preview_entries.2.type_label }}{% else %}Wala pang tala{% endif %}</p>
 </div>
@@ -156,7 +156,7 @@ kita ang buong kuwento ng bawat suki.</p>
 </div>
 <h2 class="fd-149_4313" data-figma-node="149:4313">{% if preview_customer %}₱{{ preview_customer.running_balance|floatformat:'2g' }}{% else %}—{% endif %}</h2>
 </div>
-<p class="fd-149_4314" data-figma-node="149:4314">{% if preview_store %}Mula sa iyong saved records{% else %}Preview · Walang customer data{% endif %}</p>
+<p class="fd-149_4314" data-figma-node="149:4314">{% if preview_store %}Mula sa iyong saved records{% else %}Halimbawang tala · Sample lamang{% endif %}</p>
 </div>
 <div class="fd-149_4315" data-figma-node="149:4315">
 <div class="fd-149_4316" data-figma-node="149:4316">
@@ -205,10 +205,10 @@ Ihiwalay ang expired bago magbukas.</p>
 </div>
 <div class="fd-149_4343" data-figma-node="149:4343">
 <p class="fd-149_4344" data-figma-node="149:4344">Paraan ng pag aayos</p><div class="fd-149_4345" data-figma-node="149:4345">
-<button class="fd-149_4346" data-figma-node="149:4346" type="button" data-stock-order="expiry" aria-pressed="true">
+<button class="fd-149_4346" data-figma-node="149:4346" type="button" data-stock-order="expiry" aria-pressed="{% if stock_order == 'expiry' %}true{% else %}false{% endif %}">
 <p class="fd-149_4347" data-figma-node="149:4347"><span class="fd-desktop-only">Expiry priority</span><span class="fd-mobile-only">Expiry muna</span></p>
 </button>
-<button class="fd-149_4348" data-figma-node="149:4348" type="button" data-stock-order="arrival" aria-pressed="false">
+<button class="fd-149_4348" data-figma-node="149:4348" type="button" data-stock-order="arrival" aria-pressed="{% if stock_order == 'arrival' %}true{% else %}false{% endif %}">
 <p class="fd-149_4349" data-figma-node="149:4349">Unang dating</p>
 </button>
 
@@ -225,7 +225,7 @@ hindi lang ang kabuuang bilang.</p>
 </div>
 <div class="fd-149_4355" data-figma-node="149:4355">
 <div class="fd-149_4356" data-figma-node="149:4356">
-<div class="fd-149_4357" data-figma-node="149:4357"><img src="{% static 'images/figma/imgProductIllustrationPacket.svg' %}" width="64" height="78" alt="" aria-hidden="true"></div>
+<div class="fd-149_4357" data-figma-node="149:4357"><img src="{% if preview_featured and preview_featured.product.unit == 'can' or preview_featured and preview_featured.product.unit == 'cans' %}{% static 'images/figma/imgProductIllustrationCan.svg' %}{% else %}{% static 'images/figma/imgProductIllustrationPacket.svg' %}{% endif %}" width="64" height="78" alt="" aria-hidden="true"></div>
 </div>
 <div class="fd-149_4365" data-figma-node="149:4365">
 <p class="fd-149_4366" data-figma-node="149:4366">{{ preview_featured.product.name|default:'Iyong paninda' }}</p><p class="fd-149_4367" data-figma-node="149:4367">{% if preview_featured %}{{ preview_featured.batch_code }}{% if preview_featured.shelf_location %} · {{ preview_featured.shelf_location }}{% endif %}{% else %}Batch at lokasyon sa estante{% endif %}</p><p class="fd-149_4368" data-figma-node="149:4368">{% if preview_featured %}{{ preview_featured.quantity }} {{ preview_featured.product.unit }} na natitira{% else %}—{% endif %}</p>
@@ -239,14 +239,14 @@ hindi lang ang kabuuang bilang.</p>
 
 </div>
 <div class="fd-149_4373" data-figma-node="149:4373">
-<div class="fd-149_4374" data-figma-node="149:4374"><img src="{% static 'images/figma/imgPhosphorArrowRight.svg' %}" width="20" height="20" alt="" aria-hidden="true"></div><p class="fd-149_4376" data-figma-node="149:4376">Ilipat sa harap ng estante</p>
+<div class="fd-149_4374" data-figma-node="149:4374"><img src="{% static 'images/figma/imgPhosphorArrowRight.svg' %}" width="20" height="20" alt="" aria-hidden="true"></div><p class="fd-149_4376" data-figma-node="149:4376">{{ preview_featured.action_hint|default:'Ilipat sa harap ng estante' }}</p>
 </div>
 
 </div>
 <div class="fd-149_4377" data-figma-node="149:4377">
 <div class="fd-149_4378" data-figma-node="149:4378">
 <div class="fd-149_4379" data-figma-node="149:4379">
-<div class="fd-149_4380" data-figma-node="149:4380"><img src="{% static 'images/figma/imgProductIllustrationPacket1.svg' %}" width="40" height="49" alt="" aria-hidden="true"></div><div class="fd-149_4388" data-figma-node="149:4388">
+<div class="fd-149_4380" data-figma-node="149:4380"><img src="{% if preview_other_batches.0 and preview_other_batches.0.product.unit == 'can' or preview_other_batches.0 and preview_other_batches.0.product.unit == 'cans' %}{% static 'images/figma/imgProductIllustrationCan.svg' %}{% else %}{% static 'images/figma/imgProductIllustrationPacket1.svg' %}{% endif %}" width="40" height="49" alt="" aria-hidden="true"></div><div class="fd-149_4388" data-figma-node="149:4388">
 <p class="fd-149_4389" data-figma-node="149:4389">{{ preview_other_batches.0.product.name|default:'Iyong paninda' }}</p><p class="fd-149_4390" data-figma-node="149:4390">{% if preview_other_batches.0 %}{{ preview_other_batches.0.quantity }} {{ preview_other_batches.0.product.unit }}{% else %}—{% endif %}</p>
 </div>
 
@@ -261,7 +261,7 @@ hindi lang ang kabuuang bilang.</p>
 </div>
 <div class="fd-149_4396" data-figma-node="149:4396">
 <div class="fd-149_4397" data-figma-node="149:4397">
-<div class="fd-149_4398" data-figma-node="149:4398"><img src="{% static 'images/figma/imgProductIllustrationCan.svg' %}" width="40" height="49" alt="" aria-hidden="true"></div><div class="fd-149_4409" data-figma-node="149:4409">
+<div class="fd-149_4398" data-figma-node="149:4398"><img src="{% if preview_other_batches.1 and preview_other_batches.1.product.unit == 'can' or preview_other_batches.1 and preview_other_batches.1.product.unit == 'cans' %}{% static 'images/figma/imgProductIllustrationCan.svg' %}{% else %}{% static 'images/figma/imgProductIllustrationPacket1.svg' %}{% endif %}" width="40" height="49" alt="" aria-hidden="true"></div><div class="fd-149_4409" data-figma-node="149:4409">
 <p class="fd-149_4410" data-figma-node="149:4410">{{ preview_other_batches.1.product.name|default:'Iyong paninda' }}</p><p class="fd-149_4411" data-figma-node="149:4411">{% if preview_other_batches.1 %}{{ preview_other_batches.1.quantity }} {{ preview_other_batches.1.product.unit }}{% else %}—{% endif %}</p>
 </div>
 
@@ -282,7 +282,7 @@ hindi lang ang kabuuang bilang.</p>
 </div>
 
 </div>
-<p class="fd-149_4423" data-figma-node="149:4423">Unahin ang pinakamalapit na expiry</p>
+<p class="fd-149_4423" data-figma-node="149:4423">{{ stock_order_caption|default:'Unahin ang pinakamalapit na expiry' }}</p>
 </div>
 
 </div>
@@ -323,26 +323,26 @@ Ang bayad sa dating utang ay perang pumasok.</p>
 </div>
 <p class="fd-I149_4439_149_5270" data-figma-node="I149:4439;149:5270">{% if preview_activity.2 %}{{ preview_activity.2.date|date:'g:i A' }} · {{ preview_activity.2.kind }}{% else %}Ang iyong tala ng araw{% endif %}</p>
 </div>
-<p class="fd-149_4440" data-figma-node="149:4440">{% if preview_store %}Mula sa iyong saved records{% else %}Preview · Walang customer data{% endif %}</p>
+<p class="fd-149_4440" data-figma-node="149:4440">{% if preview_store %}Mula sa iyong saved records{% else %}Halimbawang tala · Sample lamang{% endif %}</p>
 </div>
 <div class="fd-149_4441" data-figma-node="149:4441">
 <div class="fd-149_4442" data-figma-node="149:4442">
 <div class="fd-149_4443" data-figma-node="149:4443">
 <div class="fd-149_4444" data-figma-node="149:4444"><img src="{% static 'images/figma/imgPhosphorReceipt1.svg' %}" width="24" height="24" alt="" aria-hidden="true"></div><p class="fd-149_4446" data-figma-node="149:4446">Kabuuang benta</p>
 </div>
-<h2 class="fd-149_4447" data-figma-node="149:4447">{% if preview_store %}₱{{ preview_summary.gross_sales|floatformat:'2g' }}{% else %}—{% endif %}</h2><div class="fd-149_4448" data-figma-node="149:4448">
+<h2 class="fd-149_4447" data-figma-node="149:4447">{% if preview_has_summary %}₱{{ preview_summary.gross_sales|floatformat:'2g' }}{% else %}—{% endif %}</h2><div class="fd-149_4448" data-figma-node="149:4448">
 
 </div>
-<p class="fd-149_4449" data-figma-node="149:4449">{% if preview_store %}₱{{ preview_summary.cash_sales|floatformat:'2g' }} cash sale + ₱{{ preview_summary.utang_sales|floatformat:'2g' }} pautang{% else %}Cash sale + pautang{% endif %}</p><p class="fd-149_4450" data-figma-node="149:4450">Lahat ng nabentang paninda</p>
+<p class="fd-149_4449" data-figma-node="149:4449">{% if preview_has_summary %}₱{{ preview_summary.cash_sales|floatformat:'2g' }} cash sale + ₱{{ preview_summary.utang_sales|floatformat:'2g' }} pautang{% else %}Cash sale + pautang{% endif %}</p><p class="fd-149_4450" data-figma-node="149:4450">Lahat ng nabentang paninda</p>
 </div>
 <div class="fd-149_4451" data-figma-node="149:4451">
 <div class="fd-149_4452" data-figma-node="149:4452">
 <div class="fd-149_4453" data-figma-node="149:4453"><img src="{% static 'images/figma/imgPhosphorCheckCircle2.svg' %}" width="24" height="24" alt="" aria-hidden="true"></div><p class="fd-149_4455" data-figma-node="149:4455">Perang pumasok</p>
 </div>
-<h2 class="fd-149_4456" data-figma-node="149:4456">{% if preview_store %}₱{{ preview_summary.cash_collected|floatformat:'2g' }}{% else %}—{% endif %}</h2><div class="fd-149_4457" data-figma-node="149:4457">
+<h2 class="fd-149_4456" data-figma-node="149:4456">{% if preview_has_summary %}₱{{ preview_summary.cash_collected|floatformat:'2g' }}{% else %}—{% endif %}</h2><div class="fd-149_4457" data-figma-node="149:4457">
 
 </div>
-<p class="fd-149_4458" data-figma-node="149:4458">{% if preview_store %}₱{{ preview_summary.cash_sales|floatformat:'2g' }} cash sale + ₱{{ preview_summary.payments_received|floatformat:'2g' }} bayad{% else %}Cash sale + bayad sa utang{% endif %}</p><p class="fd-149_4459" data-figma-node="149:4459">Aktuwal na perang natanggap</p>
+<p class="fd-149_4458" data-figma-node="149:4458">{% if preview_has_summary %}₱{{ preview_summary.cash_sales|floatformat:'2g' }} cash sale + ₱{{ preview_summary.payments_received|floatformat:'2g' }} bayad{% else %}Cash sale + bayad sa utang{% endif %}</p><p class="fd-149_4459" data-figma-node="149:4459">Aktuwal na perang natanggap</p>
 </div>
 
 </div>
@@ -377,7 +377,7 @@ ang talaan ng tindahan.</p>
 
 </div>
 <div class="fd-149_4478" data-figma-node="149:4478">
-<details class="fd-149_4479" data-figma-node="149:4479" open><summary class="fd-I149_4479_149_5278"><p class="fd-I149_4479_149_5279" data-figma-node="I149:4479;149:5279">Para kanino ang TindaHan Ledger?</p><img class="fd-plus" src="{% static 'images/figma/imgPhosphorPlus.svg' %}" width="24" height="24" alt=""><img class="fd-minus" src="{% static 'images/figma/imgPhosphorMinus.svg' %}" width="24" height="24" alt=""></summary><p class="fd-faq-answer">Para sa may ari ng sari sari store na gustong ayusin ang utang, bayad, benta, at stock sa isang talaan.</p></details><details class="fd-149_4480" data-figma-node="149:4480"><summary class="fd-I149_4480_149_5273"><p class="fd-I149_4480_149_5274" data-figma-node="I149:4480;149:5274">Totoong impormasyon ba ang nasa sample?</p><img class="fd-plus" src="{% static 'images/figma/imgPhosphorPlus.svg' %}" width="24" height="24" alt=""><img class="fd-minus" src="{% static 'images/figma/imgPhosphorMinus.svg' %}" width="24" height="24" alt=""></summary><p class="fd-faq-answer">Ang mga halaga ay mula sa saved records ng sarili mong tindahan. Walang customer data na ipinapakita sa public preview.</p></details><details class="fd-149_4481" data-figma-node="149:4481"><summary class="fd-I149_4481_149_5273"><p class="fd-I149_4481_149_5274" data-figma-node="I149:4481;149:5274">Puwede ba sa cellphone?</p><img class="fd-plus" src="{% static 'images/figma/imgPhosphorPlus.svg' %}" width="24" height="24" alt=""><img class="fd-minus" src="{% static 'images/figma/imgPhosphorMinus.svg' %}" width="24" height="24" alt=""></summary><p class="fd-faq-answer">Oo. Magagamit ang talaan, POS, at stock records sa cellphone, tablet, at computer.</p></details><details class="fd-149_4482" data-figma-node="149:4482"><summary class="fd-I149_4482_149_5273"><p class="fd-I149_4482_149_5274" data-figma-node="I149:4482;149:5274">Paano pinipili ang unang stock na ibebenta?</p><img class="fd-plus" src="{% static 'images/figma/imgPhosphorPlus.svg' %}" width="24" height="24" alt=""><img class="fd-minus" src="{% static 'images/figma/imgPhosphorMinus.svg' %}" width="24" height="24" alt=""></summary><p class="fd-faq-answer">Unang ibinebenta ang batch na may pinakamalapit na expiry, kasunod ang petsa ng pagdating. Hindi kasama sa POS ang expired na stock.</p></details><details class="fd-149_4483" data-figma-node="149:4483"><summary class="fd-I149_4483_149_5273"><p class="fd-I149_4483_149_5274" data-figma-node="I149:4483;149:5274">Benta ba ang bayad sa dating utang?</p><img class="fd-plus" src="{% static 'images/figma/imgPhosphorPlus.svg' %}" width="24" height="24" alt=""><img class="fd-minus" src="{% static 'images/figma/imgPhosphorMinus.svg' %}" width="24" height="24" alt=""></summary><p class="fd-faq-answer">Hindi. Ang bayad sa dating utang ay collection, hindi bagong product sale.</p></details><details class="fd-149_4484" data-figma-node="149:4484"><summary class="fd-I149_4484_149_5273"><p class="fd-I149_4484_149_5274" data-figma-node="I149:4484;149:5274">Paano ako magsisimula?</p><img class="fd-plus" src="{% static 'images/figma/imgPhosphorPlus.svg' %}" width="24" height="24" alt=""><img class="fd-minus" src="{% static 'images/figma/imgPhosphorMinus.svg' %}" width="24" height="24" alt=""></summary><p class="fd-faq-answer">Gumawa ng account, ilagay ang detalye ng tindahan, at idagdag ang iyong mga suki at paninda.</p></details>
+<details class="fd-149_4479" data-figma-node="149:4479" open><summary class="fd-I149_4479_149_5278"><p class="fd-I149_4479_149_5279" data-figma-node="I149:4479;149:5279">Para kanino ang TindaHan Ledger?</p><img class="fd-plus" src="{% static 'images/figma/imgPhosphorPlus.svg' %}" width="24" height="24" alt=""><img class="fd-minus" src="{% static 'images/figma/imgPhosphorMinus.svg' %}" width="24" height="24" alt=""></summary><p class="fd-faq-answer">Para sa may ari ng sari sari store na gustong ayusin ang utang, bayad, benta, at stock sa isang talaan.</p></details><details class="fd-149_4480" data-figma-node="149:4480"><summary class="fd-I149_4480_149_5273"><p class="fd-I149_4480_149_5274" data-figma-node="I149:4480;149:5274">Totoong impormasyon ba ang nasa sample?</p><img class="fd-plus" src="{% static 'images/figma/imgPhosphorPlus.svg' %}" width="24" height="24" alt=""><img class="fd-minus" src="{% static 'images/figma/imgPhosphorMinus.svg' %}" width="24" height="24" alt=""></summary><p class="fd-faq-answer">Hindi. Halimbawa lamang ang ipinapakita sa public preview at walang totoong customer data rito. Kapag gumawa ka ng account, magsisimula ka sa malinis na talaan at sarili mong saved records lang ang makikita mo.</p></details><details class="fd-149_4481" data-figma-node="149:4481"><summary class="fd-I149_4481_149_5273"><p class="fd-I149_4481_149_5274" data-figma-node="I149:4481;149:5274">Puwede ba sa cellphone?</p><img class="fd-plus" src="{% static 'images/figma/imgPhosphorPlus.svg' %}" width="24" height="24" alt=""><img class="fd-minus" src="{% static 'images/figma/imgPhosphorMinus.svg' %}" width="24" height="24" alt=""></summary><p class="fd-faq-answer">Oo. Magagamit ang talaan, POS, at stock records sa cellphone, tablet, at computer.</p></details><details class="fd-149_4482" data-figma-node="149:4482"><summary class="fd-I149_4482_149_5273"><p class="fd-I149_4482_149_5274" data-figma-node="I149:4482;149:5274">Paano pinipili ang unang stock na ibebenta?</p><img class="fd-plus" src="{% static 'images/figma/imgPhosphorPlus.svg' %}" width="24" height="24" alt=""><img class="fd-minus" src="{% static 'images/figma/imgPhosphorMinus.svg' %}" width="24" height="24" alt=""></summary><p class="fd-faq-answer">Unang ibinebenta ang batch na may pinakamalapit na expiry, kasunod ang petsa ng pagdating. Hindi kasama sa POS ang expired na stock.</p></details><details class="fd-149_4483" data-figma-node="149:4483"><summary class="fd-I149_4483_149_5273"><p class="fd-I149_4483_149_5274" data-figma-node="I149:4483;149:5274">Benta ba ang bayad sa dating utang?</p><img class="fd-plus" src="{% static 'images/figma/imgPhosphorPlus.svg' %}" width="24" height="24" alt=""><img class="fd-minus" src="{% static 'images/figma/imgPhosphorMinus.svg' %}" width="24" height="24" alt=""></summary><p class="fd-faq-answer">Hindi. Ang bayad sa dating utang ay collection, hindi bagong product sale.</p></details><details class="fd-149_4484" data-figma-node="149:4484"><summary class="fd-I149_4484_149_5273"><p class="fd-I149_4484_149_5274" data-figma-node="I149:4484;149:5274">Paano ako magsisimula?</p><img class="fd-plus" src="{% static 'images/figma/imgPhosphorPlus.svg' %}" width="24" height="24" alt=""><img class="fd-minus" src="{% static 'images/figma/imgPhosphorMinus.svg' %}" width="24" height="24" alt=""></summary><p class="fd-faq-answer">Gumawa ng account, ilagay ang detalye ng tindahan, at idagdag ang iyong mga suki at paninda.</p></details>
 </div>
 
 </div>
@@ -452,4 +452,4 @@ bayad, benta, at stock ng tindahan.</p>
 
 </section>
 
-</main><dialog class="fd-mobile-menu" id="landing-menu" aria-label="Navigation"><button type="button" data-close-menu>Close</button><a href="#ledger-demo">Ang ledger</a><a href="#inventory-story">Ang stock</a><a href="#daily-overview">Daily audit</a><a href="#faq">Mga tanong</a><a href="{% url 'register:register' %}">Create account</a><a href="{% url 'login:login' %}">Sign in</a></dialog><p class="fd-preview-note">New accounts start empty. {% if not request.user.is_authenticated %}Walang customer data sa public preview.{% endif %} <a href="{% url 'login:login' %}">Sign in</a></p></body></html>
+</main><dialog class="fd-mobile-menu" id="landing-menu" aria-label="Navigation"><button type="button" data-close-menu>Close</button><a href="#ledger-demo">Ang ledger</a><a href="#inventory-story">Ang stock</a><a href="#daily-overview">Daily audit</a><a href="#faq">Mga tanong</a><a href="{% url 'register:register' %}">Create account</a><a href="{% url 'login:login' %}">Sign in</a></dialog><p class="fd-preview-note">New accounts start empty. {% if not request.user.is_authenticated %}Halimbawa lamang ang nasa public preview; walang totoong customer data.{% endif %} <a href="{% url 'login:login' %}">Sign in</a></p></body></html>
