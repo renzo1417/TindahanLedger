@@ -1,12 +1,13 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
+from django.db import transaction
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.decorators.http import require_POST
-from apps.home.forms import CustomerForm, LedgerForm
+from apps.home.forms import CustomerEditForm, CustomerForm, LedgerForm
 from apps.home.models import Customer
 from apps.home.selectors import customers_for, customer_status, sms_message
-from apps.home.services import current_store, preferences, create_customer, record_entry
+from apps.home.services import current_store, lock_store, preferences, create_customer, record_entry
 
 
 @login_required
@@ -23,17 +24,50 @@ def customer_list_view(request):
         'overdue_count': sum(c.status == 'overdue' for c in customers)})
 
 
+def _customer_detail_context(store, customer, edit_form=None):
+    customer_status(customer, preferences(store).overdue_grace_days)
+    return {
+        'active_nav': 'utang',
+        'customer': customer,
+        'transactions': customer.ledger_transactions.order_by('-transaction_date', '-pk'),
+        'form': LedgerForm(initial={'customer_id': customer.pk, 'kind': 'utang', 'payment_mode': 'Cash'}),
+        'edit_form': edit_form or CustomerEditForm(instance=customer),
+        'sms_preview': sms_message(customer, store),
+    }
+
+
 @login_required
 def customer_detail_view(request, customer_id):
     store = request.store = current_store(request.user)
     customer = get_object_or_404(Customer, pk=customer_id, store=store)
     if request.method == 'POST':
         return _save_entry(request, store, customer_id)
-    customer_status(customer, preferences(store).overdue_grace_days)
-    return render(request, 'customers/customer_detail.html', {'active_nav': 'utang', 'customer': customer,
-        'transactions': customer.ledger_transactions.order_by('-transaction_date', '-pk'),
-        'form': LedgerForm(initial={'customer_id': customer.pk, 'kind': 'utang', 'payment_mode': 'Cash'}),
-        'sms_preview': sms_message(customer, store)})
+    return render(request, 'customers/customer_detail.html', _customer_detail_context(store, customer))
+
+
+@login_required
+@require_POST
+def customer_edit_view(request, customer_id):
+    store = request.store = current_store(request.user)
+    customer = get_object_or_404(Customer, pk=customer_id, store=store)
+    form = CustomerEditForm(request.POST, instance=customer)
+    if form.is_valid():
+        with transaction.atomic():
+            lock_store(store)
+            locked_customer = get_object_or_404(Customer, pk=customer_id, store=store)
+            bound = CustomerEditForm(request.POST, instance=locked_customer)
+            if bound.is_valid():
+                updated = bound.save(commit=False)
+                updated.avatar_letter = updated.name.strip()[0].upper() if updated.name.strip() else ''
+                updated.save()
+        messages.success(request, 'Customer details updated.')
+        return redirect('customers:customer_detail', customer_id=customer_id)
+    return render(
+        request,
+        'customers/customer_detail.html',
+        _customer_detail_context(store, customer, edit_form=form),
+        status=400,
+    )
 
 
 @login_required

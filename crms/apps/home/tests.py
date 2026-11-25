@@ -13,7 +13,7 @@ from django.test import TestCase, TransactionTestCase
 from django.utils import timezone
 
 from .forms import ProductCreateForm
-from .models import (User, Customer, CustomerLedgerTransaction, Product, ProductBatch,
+from .models import (User, Customer, CustomerLedgerTransaction, DailyStoreSummary, Product, ProductBatch,
                      SalesTransaction, SalesTransactionItem, Store, SMSReminder)
 from .selectors import financial_report, batch_status, customer_status
 from .services import (checkout, create_customer, create_product, current_store, dispose_batch,
@@ -343,6 +343,103 @@ class LedgerTests(TestCase):
         product = self.product(self.other_store)
         sale = checkout(self.other_store, self.payload(product))
         self.assertEqual(self.client.get(f'/pos/receipts/{sale.pk}/').status_code, 404)
+
+    def test_logout_requires_post(self):
+        self.assertEqual(self.client.get('/login/logout/').status_code, 405)
+        self.assertEqual(self.client.get('/home/').status_code, 200)
+        response = self.client.post('/login/logout/')
+        self.assertRedirects(response, '/login/', fetch_redirect_response=False)
+        self.assertEqual(self.client.get('/home/').status_code, 302)
+
+    def test_login_with_case_insensitive_email(self):
+        self.account.email = 'Owner@Store.PH'
+        self.account.save(update_fields=['email'])
+        self.client.logout()
+        response = self.client.post('/login/', {'identifier': 'owner@store.ph', 'password': 'Store#password2026'})
+        self.assertRedirects(response, '/home/', fetch_redirect_response=False)
+
+    def test_pos_checkout_invalid_or_other_store_customer_returns_json_400(self):
+        product = self.product()
+        other_customer = self.customer(self.other_store, name='Other store customer')
+        due = (timezone.localdate() + timedelta(days=3)).isoformat()
+        for bad_customer_id in (999999, other_customer.pk):
+            with self.subTest(customer_id=bad_customer_id):
+                response = self.client.post(
+                    '/pos/checkout/',
+                    data=json.dumps(self.payload(product, payment_method='Utang', customer_id=bad_customer_id, due_date=due)),
+                    content_type='application/json',
+                )
+                self.assertEqual(response.status_code, 400)
+                self.assertIn('error', response.json())
+
+    def test_customer_edit_updates_details_and_is_store_scoped(self):
+        customer = self.customer(name='Aling Rosa', initial_balance=Decimal('120.00'))
+        other_customer = self.customer(self.other_store, name='Private other customer')
+        response = self.client.post(
+            f'/utang/{customer.pk}/edit/',
+            {
+                'name': 'Mama Rosa',
+                'nickname': 'Tindahan regular',
+                'phone': '09171234567',
+                'gcash': '09171234567',
+                'address': 'Blk 2 Lot 5',
+                'credit_limit': '5000.00',
+                'notes': 'Updated note',
+            },
+        )
+        self.assertRedirects(response, f'/utang/{customer.pk}/', fetch_redirect_response=False)
+        customer.refresh_from_db()
+        self.assertEqual(customer.name, 'Mama Rosa')
+        self.assertEqual(customer.avatar_letter, 'M')
+        self.assertEqual(customer.phone, '09171234567')
+        self.assertEqual(customer.gcash, '09171234567')
+        self.assertEqual(customer.credit_limit, Decimal('5000.00'))
+        self.assertEqual(customer.running_balance, Decimal('120.00'))
+        self.assertEqual(
+            self.client.post(f'/utang/{other_customer.pk}/edit/', {'name': 'Hack', 'credit_limit': '100'}).status_code,
+            404,
+        )
+
+    def test_password_change_updates_password_and_keeps_session(self):
+        user_model = get_user_model()
+        account = user_model.objects.create_user(username='pw-merchant', password='Old#Password2026')
+        self.client.force_login(account)
+        bad = self.client.post(
+            '/profile/password/',
+            {'old_password': 'Wrong#Password2026', 'new_password1': 'New#Password2026', 'new_password2': 'New#Password2026'},
+        )
+        self.assertEqual(bad.status_code, 400)
+        self.assertContains(bad, 'data-auto-open', status_code=400)
+        good = self.client.post(
+            '/profile/password/',
+            {'old_password': 'Old#Password2026', 'new_password1': 'New#Password2026', 'new_password2': 'New#Password2026'},
+        )
+        self.assertRedirects(good, '/profile/', fetch_redirect_response=False)
+        self.assertEqual(self.client.get('/home/').status_code, 200)
+        account.refresh_from_db()
+        self.assertEqual(User.objects.get(auth_user=account).password_hash, account.password)
+        self.client.post('/login/logout/')
+        login_res = self.client.post('/login/', {'identifier': 'pw-merchant', 'password': 'New#Password2026'})
+        self.assertRedirects(login_res, '/home/', fetch_redirect_response=False)
+
+    def test_daily_store_summary_updates_on_checkout_and_payment(self):
+        product = self.product()
+        customer = self.customer(initial_balance=Decimal('100.00'))
+        checkout(
+            self.store,
+            {'token': str(uuid4()), 'payment_method': 'Cash', 'cash_tendered': '50', 'items': [{'product_id': product.pk, 'quantity': 2}]},
+        )
+        summary = DailyStoreSummary.objects.get(store=self.store, report_date=timezone.localdate())
+        self.assertEqual(summary.gross_sales, Decimal('30.00'))
+        self.assertEqual(summary.gross_margin, Decimal('10.00'))
+        self.assertEqual(summary.cash_collected, Decimal('30.00'))
+        self.assertEqual(summary.uncollected_utang, Decimal('100.00'))
+        self.assertEqual(summary.transactions_count, 1)
+        record_entry(self.store, customer.pk, kind='bayad', amount='40.00', payment_mode='Cash')
+        summary.refresh_from_db()
+        self.assertEqual(summary.cash_collected, Decimal('70.00'))
+        self.assertEqual(summary.uncollected_utang, Decimal('60.00'))
+        self.assertEqual(summary.transactions_count, 1)
 
 
 @skipUnless(connection.vendor == 'postgresql', 'Row-lock concurrency requires isolated PostgreSQL.')

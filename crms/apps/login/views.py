@@ -8,6 +8,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.contrib import messages
 from django.utils.http import url_has_allowed_host_and_scheme
+from django.views.decorators.http import require_POST
 
 
 def login_view(request):
@@ -25,10 +26,10 @@ def login_view(request):
         # Authenticate by username
         user = authenticate(request, username=identifier, password=password)
 
-        if user is None:
-            # Try by email
+        if user is None and identifier:
+            # Try by email (case-insensitive)
             try:
-                user_obj = User.objects.get(email=identifier)
+                user_obj = User.objects.get(email__iexact=identifier)
                 user = authenticate(request, username=user_obj.username, password=password)
             except (User.DoesNotExist, User.MultipleObjectsReturned):
                 user = None
@@ -49,6 +50,7 @@ def login_view(request):
     })
 
 
+@require_POST
 def logout_view(request):
     """Logs the user out and redirects to the login page."""
     logout(request)

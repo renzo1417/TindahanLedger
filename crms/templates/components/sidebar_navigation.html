@@ -29,6 +29,6 @@
 <strong>{{ global_store_profile.owner_name }}</strong>
 <small>Store owner</small>
 </div>
-<a href="{% url 'login:logout' %}" aria-label="Sign out">{% include 'components/icon.html' with name='imgPhosphorSignOut' size=20 %}</a>
+<form method="post" action="{% url 'login:logout' %}" class="logout-form">{% csrf_token %}<button type="submit" aria-label="Sign out">{% include 'components/icon.html' with name='imgPhosphorSignOut' size=20 %}</button></form>
 </div>
 </aside>

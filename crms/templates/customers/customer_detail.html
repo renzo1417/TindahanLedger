@@ -58,10 +58,15 @@
 </div><p class="field-help table-note">Newest entries first. Payments reduce the balance.</p>
 </section>
 <aside class="paper-section">
+<div class="section-heading">
 <h2>Suki details</h2>
+<button type="button" class="text-action" data-modal="edit-customer-dialog">Edit details</button>
+</div>
 <dl class="details-list">
 <dt>{% include 'components/icon.html' with name='imgIconPhone' size=20 %}Phone</dt>
 <dd>{{ customer.phone|default:'Not saved' }}</dd>
+<dt>{% include 'components/icon.html' with name='imgIconPhone' size=20 %}GCash</dt>
+<dd>{{ customer.gcash|default:'Not saved' }}</dd>
 <dt>{% include 'components/icon.html' with name='imgIconMapPin' size=20 %}Address</dt>
 <dd>{{ customer.address|default:'Not saved' }}</dd>
 <dt>{% include 'components/icon.html' with name='imgIconNotebook' size=20 %}Notes</dt>
@@ -113,6 +118,18 @@
 <form method="post" action="{% url 'customers:entry' %}">{% csrf_token %}{% include 'components/form_fields.html' %}<div class="form-actions">
 <button class="button" type="button" data-close-dialog>Cancel</button>
 <button class="button primary" type="submit">Save adjustment</button>
+</div>
+</form>
+</dialog>
+<dialog id="edit-customer-dialog" class="app-dialog" aria-labelledby="edit-customer-title" {% if edit_form.errors %}data-auto-open{% endif %}>
+<div class="dialog-header">
+<h2 id="edit-customer-title">Edit suki details</h2>
+<button type="button" data-close-dialog aria-label="Close edit dialog">Close</button>
+</div>
+<p class="muted">Update contact details or credit limit. Running balance is preserved.</p>
+<form method="post" action="{% url 'customers:customer_edit' customer.pk %}">{% csrf_token %}{% include 'components/form_fields.html' with form=edit_form %}<div class="form-actions">
+<button class="button" type="button" data-close-dialog>Cancel</button>
+<button class="button primary" type="submit">Save details</button>
 </div>
 </form>
 </dialog>{% endblock %}

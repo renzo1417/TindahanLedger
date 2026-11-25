@@ -39,6 +39,23 @@
 </div>
 <h3>Operating hours</h3>
 <p>{{ store.operating_hours|default:'Add your operating hours in Business details.' }}</p>
+<div class="divider">
+</div>
+<h3>Account security</h3>
+<p>Update the password used to sign in to this store.</p>
+<button class="button" type="button" data-modal="password-dialog">Change password</button>
 </aside>
 </div>
-<p class="footer-note">Ledger created {{ store.created_at|date:'d M Y' }}. Contact changes do not change your sign-in username.</p>{% endblock %}
+<p class="footer-note">Ledger created {{ store.created_at|date:'d M Y' }}. Contact changes do not change your sign-in username.</p>
+<dialog id="password-dialog" class="app-dialog" aria-labelledby="password-title" {% if password_form.errors %}data-auto-open{% endif %}>
+<div class="dialog-header">
+<h2 id="password-title">Change password</h2>
+<button type="button" data-close-dialog aria-label="Close password dialog">Close</button>
+</div>
+<p class="muted">Enter your current password and choose a new one for this store account.</p>
+<form method="post" action="{% url 'profile:change_password' %}">{% csrf_token %}{% include 'components/form_fields.html' with form=password_form %}<div class="form-actions">
+<button class="button" type="button" data-close-dialog>Cancel</button>
+<button class="button primary" type="submit">Update password</button>
+</div>
+</form>
+</dialog>{% endblock %}

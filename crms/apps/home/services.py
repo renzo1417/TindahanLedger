@@ -1,17 +1,17 @@
 """Store-scoped writes. A store row lock serializes stock and balance changes."""
-from datetime import date
+from datetime import date, datetime, time, timedelta
 from decimal import Decimal, InvalidOperation
 from uuid import UUID, uuid4
 
 from django.core.exceptions import ValidationError
 from django.db import transaction
-from django.db.models import Sum
+from django.db.models import Count, Sum
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 
 from apps.user_settings.models import UserSettings
-from .models import (Category, Customer, CustomerLedgerTransaction, Product,
-                     ProductBatch, SalesTransaction, SalesTransactionItem, Store)
+from .models import (Category, Customer, CustomerLedgerTransaction, DailyStoreSummary,
+                     Product, ProductBatch, SalesTransaction, SalesTransactionItem, Store)
 
 ZERO = Decimal('0.00')
 
@@ -156,11 +156,57 @@ def _ledger_entry(store, customer, kind, amount, summary='', due_date=None, paym
         due_date=due_date, notes=notes)
 
 
+def sync_daily_summary(store, report_date=None):
+    """Upsert the DailyStoreSummary snapshot for a store on the given Philippine calendar day."""
+    day = report_date or timezone.localdate()
+    start = timezone.make_aware(datetime.combine(day, time.min))
+    end = timezone.make_aware(datetime.combine(day + timedelta(days=1), time.min))
+    sales = SalesTransaction.objects.filter(
+        store=store, transaction_type='sale', transaction_date__gte=start, transaction_date__lt=end
+    )
+    figures = sales.aggregate(
+        gross_sales=Sum('total_amount'),
+        gross_margin=Sum('profit_earned'),
+        transactions_count=Count('pk'),
+    )
+    gross_sales = figures['gross_sales'] or ZERO
+    gross_margin = figures['gross_margin'] or ZERO
+    transactions_count = figures['transactions_count'] or 0
+    cash_sales = sales.filter(payment_method='Cash').aggregate(total=Sum('total_amount'))['total'] or ZERO
+    payments_received = (
+        CustomerLedgerTransaction.objects.filter(
+            customer__store=store, transaction_type='bayad', transaction_date__gte=start, transaction_date__lt=end
+        ).aggregate(total=Sum('amount'))['total']
+        or ZERO
+    )
+    uncollected_utang = Customer.objects.filter(store=store).aggregate(total=Sum('running_balance'))['total'] or ZERO
+    if gross_sales > ZERO:
+        raw_pct = (gross_margin / gross_sales * Decimal('100')).quantize(Decimal('.01'))
+        margin_pct = max(Decimal('-999.99'), min(Decimal('999.99'), raw_pct))
+    else:
+        margin_pct = ZERO
+    summary, _ = DailyStoreSummary.objects.update_or_create(
+        store=store,
+        report_date=day,
+        defaults={
+            'gross_sales': gross_sales,
+            'gross_margin': gross_margin,
+            'margin_pct': margin_pct,
+            'cash_collected': cash_sales + payments_received,
+            'uncollected_utang': uncollected_utang,
+            'transactions_count': transactions_count,
+        },
+    )
+    return summary
+
+
 @transaction.atomic
 def record_entry(store, customer_id, **data):
     lock_store(store)
     customer = get_object_or_404(Customer, store=store, pk=customer_id)
-    return _ledger_entry(store, customer, **data)
+    entry = _ledger_entry(store, customer, **data)
+    sync_daily_summary(store)
+    return entry
 
 
 @transaction.atomic
@@ -211,7 +257,9 @@ def checkout(store, payload):
             raise ValidationError('Select a customer and a valid due date.')
         if due < timezone.localdate():
             raise ValidationError('The due date cannot be in the past.')
-        customer = get_object_or_404(Customer, pk=customer_id, store=store)
+        customer = Customer.objects.filter(pk=customer_id, store=store).first()
+        if customer is None:
+            raise ValidationError('Selected customer was not found in your store.')
     allocations = []
     total, profit = ZERO, ZERO
     for product in products:
@@ -247,4 +295,5 @@ def checkout(store, payload):
         batch.save()
     for product in products:
         sync_stock(product)
+    sync_daily_summary(store)
     return sale

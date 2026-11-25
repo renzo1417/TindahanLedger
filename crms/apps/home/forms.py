@@ -23,6 +23,20 @@ class CustomerForm(forms.ModelForm):
         return value
 
 
+class CustomerEditForm(forms.ModelForm):
+    class Meta:
+        model = Customer
+        fields = ['name', 'nickname', 'phone', 'gcash', 'address', 'credit_limit', 'notes']
+        labels = {'name': 'Full name', 'phone': 'Phone number', 'gcash': 'GCash number'}
+        widgets = {'address': forms.Textarea(attrs={'rows': 2}), 'notes': forms.Textarea(attrs={'rows': 2})}
+
+    def clean_credit_limit(self):
+        value = self.cleaned_data['credit_limit']
+        if value < 0:
+            raise forms.ValidationError('Credit limit cannot be negative.')
+        return value
+
+
 class LedgerForm(forms.Form):
     customer_id = forms.IntegerField(min_value=1, widget=forms.HiddenInput)
     kind = forms.ChoiceField(choices=[('utang', 'Debt adjustment'), ('bayad', 'Payment')], widget=forms.HiddenInput)

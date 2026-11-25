@@ -9,6 +9,8 @@
   <link rel="stylesheet" href="{% static 'css/style.css' %}">
   <link rel="stylesheet" href="{% static 'css/workspace.css' %}">
   <link rel="stylesheet" href="{% static 'css/workspace-fidelity.css' %}">
+  <link rel="stylesheet" href="{% static 'css/motion.css' %}">
+  <script>if(!matchMedia('(prefers-reduced-motion:reduce)').matches)document.documentElement.classList.add('gsap-motion');</script>
   {% block extra_head %}{% endblock %}
 </head>
 <body>
@@ -31,12 +33,15 @@
       <a href="{% url 'expiry' %}">Expiry tracker</a><a href="{% url 'reports:financial_reports' %}">Financial reports</a>
       <a href="{% url 'reminders:sms_reminders' %}">Singilan paalala</a><a href="{% url 'profile:index' %}">Store profile</a>
       <a href="{% url 'user_settings:index' %}">Settings & exports</a><a href="{% url 'landing:landing' %}">About TindaHan</a>
-      <a href="{% url 'login:logout' %}">Sign out</a>
+      <form method="post" action="{% url 'login:logout' %}" class="logout-form">{% csrf_token %}<button type="submit">Sign out</button></form>
     </nav>
   </dialog>
   <div id="global-toast-container" class="app-toasts" aria-live="polite" aria-atomic="true"></div>
 </div>
 {% endblock %}
+<script src="{% static 'js/vendor/gsap.min.js' %}" defer></script>
+<script src="{% static 'js/vendor/ScrollTrigger.min.js' %}" defer></script>
+<script src="{% static 'js/animations.js' %}" defer></script>
 <script src="{% static 'js/app.js' %}" defer></script>
 {% block extra_scripts %}{% endblock %}
 </body></html>

@@ -269,11 +269,21 @@
   color:#e0dad0
 }
 
-.workspace .sidebar-foot>a {
+.workspace .sidebar-foot>a,
+.workspace .sidebar-foot .logout-form button {
   display:grid;
   place-items:center;
   min-width:28px;
-  min-height:44px
+  min-height:44px;
+  background:none;
+  border:0;
+  padding:0;
+  color:inherit;
+  cursor:pointer
+}
+
+.workspace .sidebar-foot .logout-form {
+  margin:0
 }
 
 .workspace .avatar {
@@ -1141,13 +1151,25 @@
   flex-direction:column
 }
 
-.workspace .more-links a {
+.workspace .more-links .logout-form {
+  margin:0
+}
+
+.workspace .more-links a,
+.workspace .more-links .logout-form button {
+  width:100%;
   display:flex;
   gap:12px;
   align-items:center;
   min-height:48px;
+  border:0;
   border-bottom:1px solid var(--line);
-  padding:12px 0
+  padding:12px 0;
+  background:none;
+  font:inherit;
+  color:inherit;
+  text-align:left;
+  cursor:pointer
 }
 
 .workspace .search-results {
