@@ -1,0 +1,51 @@
+/* ==========================================================================
+   GSAP Animation Coordination Rules (Zero Design / Layout Changes)
+   ========================================================================== */
+
+/* Disable CSS entrance/step keyframes when GSAP is active so they never fight. */
+html.gsap-motion .anim-fade-up,
+html.gsap-motion .anim-scale-in {
+  animation: none;
+  opacity: 1;
+}
+
+html.gsap-motion .anim-shake {
+  animation: none;
+}
+
+html.gsap-motion .form-step {
+  transition: none;
+}
+
+html.gsap-motion .form-step-enter {
+  animation: none;
+}
+
+html.gsap-motion .form-step-exit {
+  transition: none;
+  opacity: 1;
+  transform: none;
+}
+
+html.gsap-motion .workspace .app-dialog[open] {
+  animation: none;
+}
+
+/* GPU-composited password strength bar under GSAP control. */
+html.gsap-motion .password-strength-fill {
+  width: 100%;
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: none;
+}
+
+@media print {
+  *,
+  *::before,
+  *::after {
+    opacity: 1 !important;
+    transform: none !important;
+    visibility: visible !important;
+    clip-path: none !important;
+  }
+}

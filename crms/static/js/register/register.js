@@ -24,8 +24,12 @@ function goToStep2() {
   if (!valid) {
     const card = document.getElementById('register-card');
     if (card) {
-      card.classList.add('anim-shake');
-      setTimeout(() => card.classList.remove('anim-shake'), 500);
+      if (window.TindahanMotion?.animateShake && document.documentElement.classList.contains('gsap-motion')) {
+        window.TindahanMotion.animateShake(card);
+      } else {
+        card.classList.add('anim-shake');
+        setTimeout(() => card.classList.remove('anim-shake'), 500);
+      }
     }
     return;
   }
@@ -37,12 +41,7 @@ function goToStep2() {
   const pwInput = document.getElementById('id_reg_password');
 
   if (step1 && step2) {
-    step1.classList.add('form-step-exit');
-    setTimeout(() => {
-      step1.classList.add('form-step-hidden');
-      step1.classList.remove('form-step-exit');
-      step2.classList.remove('form-step-hidden');
-      step2.classList.add('form-step-enter');
+    const swapDotsAndFocus = () => {
       if (step1Dot) {
         step1Dot.classList.remove('active');
         step1Dot.classList.add('completed');
@@ -51,8 +50,20 @@ function goToStep2() {
         step2Dot.classList.add('active');
       }
       if (pwInput) pwInput.focus();
-      setTimeout(() => step2.classList.remove('form-step-enter'), 300);
-    }, 200);
+    };
+    if (window.TindahanMotion?.animateRegisterStep) {
+      window.TindahanMotion.animateRegisterStep(step1, step2, 1, swapDotsAndFocus, step2Dot);
+    } else {
+      step1.classList.add('form-step-exit');
+      setTimeout(() => {
+        step1.classList.add('form-step-hidden');
+        step1.classList.remove('form-step-exit');
+        step2.classList.remove('form-step-hidden');
+        step2.classList.add('form-step-enter');
+        swapDotsAndFocus();
+        setTimeout(() => step2.classList.remove('form-step-enter'), 300);
+      }, 200);
+    }
   }
 }
 
@@ -63,21 +74,31 @@ function goToStep1() {
   const step2Dot = document.getElementById('step-2-dot');
 
   if (step1 && step2) {
-    step2.classList.add('form-step-exit');
-    setTimeout(() => {
-      step2.classList.add('form-step-hidden');
-      step2.classList.remove('form-step-exit');
-      step1.classList.remove('form-step-hidden');
-      step1.classList.add('form-step-enter');
+    const swapDots = () => {
       if (step2Dot) step2Dot.classList.remove('active');
       if (step1Dot) {
         step1Dot.classList.remove('completed');
         step1Dot.classList.add('active');
       }
-      setTimeout(() => step1.classList.remove('form-step-enter'), 300);
-    }, 200);
+    };
+    if (window.TindahanMotion?.animateRegisterStep) {
+      window.TindahanMotion.animateRegisterStep(step2, step1, -1, swapDots, step1Dot);
+    } else {
+      step2.classList.add('form-step-exit');
+      setTimeout(() => {
+        step2.classList.add('form-step-hidden');
+        step2.classList.remove('form-step-exit');
+        step1.classList.remove('form-step-hidden');
+        step1.classList.add('form-step-enter');
+        swapDots();
+        setTimeout(() => step1.classList.remove('form-step-enter'), 300);
+      }, 200);
+    }
   }
 }
+
+window.goToStep2 = goToStep2;
+window.goToStep1 = goToStep1;
 
 document.addEventListener('DOMContentLoaded', () => {
   const regCard = document.getElementById('register-card');
@@ -154,9 +175,14 @@ document.addEventListener('DOMContentLoaded', () => {
       ];
       
       const level = val.length === 0 ? levels[0] : levels[Math.min(score, 5)];
+      const ratio = val.length === 0 ? 0 : Math.min(score, 5) * 0.2;
       if (strengthFill) {
-        strengthFill.style.width = level.width;
-        strengthFill.style.backgroundColor = level.color;
+        if (window.TindahanMotion?.animateStrengthBar && document.documentElement.classList.contains('gsap-motion')) {
+          window.TindahanMotion.animateStrengthBar(strengthFill, ratio, level.color);
+        } else {
+          strengthFill.style.width = level.width;
+          strengthFill.style.backgroundColor = level.color;
+        }
       }
       if (strengthLabel) {
         strengthLabel.textContent = level.label;
@@ -182,6 +208,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!confirmInput || !pwInput || !matchIndicator) return;
     const pw = pwInput.value;
     const confirm = confirmInput.value;
+    const wasHidden = matchIndicator.style.display === 'none';
     
     if (confirm.length > 0 && pw === confirm) {
       matchIndicator.style.display = 'flex';
@@ -190,12 +217,14 @@ document.addEventListener('DOMContentLoaded', () => {
       const span = matchIndicator.querySelector('span');
       if (span) span.textContent = 'Passwords match';
       confirmInput.classList.remove('form-control-error');
+      if (wasHidden) window.TindahanMotion?.animateValuePulse(matchIndicator);
     } else if (confirm.length > 0 && pw !== confirm) {
       matchIndicator.style.display = 'flex';
       matchIndicator.classList.add('match-fail');
       matchIndicator.classList.remove('match-success');
       const span = matchIndicator.querySelector('span');
       if (span) span.textContent = 'Passwords do not match';
+      if (wasHidden) window.TindahanMotion?.animateValuePulse(matchIndicator);
     } else {
       matchIndicator.style.display = 'none';
     }
@@ -210,6 +239,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (form) {
     form.addEventListener('submit', (e) => {
       let hasError = false;
+      let lenError = false;
 
       const oldLenErr = document.getElementById('client-pw-len-error');
       if (oldLenErr) oldLenErr.remove();
@@ -223,6 +253,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!pw || pw.length < 8) {
         e.preventDefault();
         hasError = true;
+        lenError = true;
         if (pwInput) pwInput.classList.add('form-control-error');
         
         const errEl = document.createElement('p');
@@ -253,13 +284,17 @@ document.addEventListener('DOMContentLoaded', () => {
           confirmErrorContainer.innerHTML = '';
           confirmErrorContainer.appendChild(matchErrEl);
         }
-        if (!hasError && confirmInput) confirmInput.focus();
+        if (!lenError && confirmInput) confirmInput.focus();
       }
 
       if (hasError) {
         if (regCard) {
-          regCard.classList.add('anim-shake');
-          setTimeout(() => regCard.classList.remove('anim-shake'), 500);
+          if (window.TindahanMotion?.animateShake && document.documentElement.classList.contains('gsap-motion')) {
+            window.TindahanMotion.animateShake(regCard);
+          } else {
+            regCard.classList.add('anim-shake');
+            setTimeout(() => regCard.classList.remove('anim-shake'), 500);
+          }
         }
         return false;
       }

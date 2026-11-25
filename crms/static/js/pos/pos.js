@@ -4,6 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const byId = new Map(catalog.map(product => [product.id, product]));
   const cart = new Map(), storageKey = `tindahan-basket-${terminal.dataset.storeId}`;
   let token = terminal.dataset.token, pending = null, busy = false;
+  let catalogAnimatedOnce = false, lastChanged = null;
   try {
     const saved = JSON.parse(sessionStorage.getItem(storageKey) || 'null');
     if (saved) { token = saved.token || token; pending = saved.pending || null; (saved.items || []).forEach(item => { if (byId.has(item.product_id) && Number.isInteger(item.quantity) && item.quantity > 0) cart.set(item.product_id, item.quantity); }); }
@@ -16,15 +17,20 @@ document.addEventListener('DOMContentLoaded', () => {
   const basket = document.getElementById('basket-dialog'), small = matchMedia('(max-width:700px)');
   const layoutBasket = () => { if (basket.open) basket.close(); if (!small.matches) basket.setAttribute('open', ''); };
   layoutBasket(); small.addEventListener('change', layoutBasket);
-  document.getElementById('open-basket').addEventListener('click', () => { if (!basket.open) basket.showModal(); });
+  document.getElementById('open-basket').addEventListener('click', () => { if (!basket.open) { basket.showModal(); window.TindahanMotion?.animateDialogOpen(basket, false); } });
   const errorBox = document.getElementById('checkout-error'), checkoutButton = document.getElementById('checkout-button');
   const cash = document.getElementById('cash-tendered');
   const change = () => { document.getElementById('change-amount').textContent = peso(Math.max(0, cents(cash.value) - total())); };
   const element = (tag, className, text) => { const node = document.createElement(tag); if (className) node.className = className; if (text !== undefined) node.textContent = text; return node; };
-  const setQuantity = (id, delta) => {
+  const setQuantity = (id, delta, sourceTile = null) => {
     if (busy || pending) { errorBox.textContent = 'Retry the interrupted checkout before changing this basket.'; return; }
     const quantity = (cart.get(id) || 0) + delta;
     if (quantity > byId.get(id).stock) { window.showToast('No more sellable stock available for this product.'); return; }
+    lastChanged = { id, isNew: !cart.has(id) && delta > 0 };
+    if (sourceTile) {
+      window.TindahanMotion?.animatePosAddFeedback(sourceTile);
+      if (delta > 0) window.TindahanMotion?.animatePosFlyToBasket?.(sourceTile);
+    }
     if (quantity <= 0) cart.delete(id); else cart.set(id, quantity);
     errorBox.textContent = ''; save(); renderBasket();
   };
@@ -32,6 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const host = document.getElementById('basket-items'); host.replaceChildren();
     cart.forEach((quantity, id) => {
       const product = byId.get(id), row = element('div', 'basket-row'), description = element('div');
+      row.dataset.productId = String(id);
       description.append(element('strong', '', product.name), element('small', '', `${peso(cents(product.price))} × ${quantity}`));
       const controls = element('div', 'quantity-controls');
       for (const delta of [-1, 1]) { const button = element('button', '', delta < 0 ? '−' : '+'); button.type = 'button'; button.setAttribute('aria-label', `${delta < 0 ? 'Remove one' : 'Add one'} ${product.name}`); button.disabled = busy || Boolean(pending); button.addEventListener('click', () => setQuantity(id, delta)); controls.append(button); if (delta < 0) controls.append(element('span', '', quantity)); }
@@ -50,8 +57,17 @@ document.addEventListener('DOMContentLoaded', () => {
     cash.disabled = busy || Boolean(pending);
     document.querySelectorAll('#checkout-form select,#checkout-form input[type="radio"],#checkout-form input[type="date"]').forEach(input => { input.disabled = busy || Boolean(pending); });
     change();
+    if (lastChanged) {
+      const changedRow = host.querySelector(`[data-product-id="${lastChanged.id}"]`);
+      window.TindahanMotion?.animatePosBasketUpdate({
+        rowEl: changedRow,
+        isNew: lastChanged.isNew,
+        totalEls: [document.getElementById('basket-total'), document.getElementById('mobile-basket-total')]
+      });
+      lastChanged = null;
+    }
   }
-  function renderCatalog() {
+  function renderCatalog(animate = false) {
     const query = document.getElementById('pos-search').value.toLowerCase(), category = document.getElementById('pos-category').value;
     const products = catalog.filter(p => (!category || p.category === category) && `${p.name} ${p.sku}`.toLowerCase().includes(query));
     const host = document.getElementById('pos-products'); host.replaceChildren();
@@ -65,22 +81,23 @@ document.addEventListener('DOMContentLoaded', () => {
       const add = element('span', 'add-product'), plus = element('img', 'ui-icon');
       plus.src = terminal.dataset.plusIcon; plus.alt = ''; plus.width = 20; plus.height = 20; add.append(plus);
       button.append(art, element('span', 'product-name', product.name), element('span', 'product-category', product.category), element('span', 'product-price', peso(cents(product.price))), element('span', 'product-stock', `${product.stock} ${product.unit} available`), add);
-      button.addEventListener('click', () => setQuantity(product.id, 1)); host.append(button);
+      button.addEventListener('click', () => setQuantity(product.id, 1, button)); host.append(button);
     });
     if (!products.length) host.append(element('p', 'quiet-empty', 'No products match. Add inventory or change your search.'));
+    else if (animate) window.TindahanMotion?.animatePosTiles(host);
   }
-  document.getElementById('pos-search').addEventListener('input', renderCatalog);
-  document.getElementById('pos-category').addEventListener('change', renderCatalog);
+  document.getElementById('pos-search').addEventListener('input', () => renderCatalog(false));
+  document.getElementById('pos-category').addEventListener('change', () => renderCatalog(true));
   document.querySelectorAll('[data-pos-category]').forEach(button => button.addEventListener('click', () => {
     document.getElementById('pos-category').value = button.dataset.posCategory;
     document.querySelectorAll('[data-pos-category]').forEach(tab => tab.setAttribute('aria-pressed', String(tab === button)));
-    renderCatalog();
+    renderCatalog(true);
   }));
   cash.addEventListener('input', change);
-  document.getElementById('exact-amount').addEventListener('click', () => { if (!pending && !busy) { cash.value = (total() / 100).toFixed(2); change(); } });
+  document.getElementById('exact-amount').addEventListener('click', () => { if (!pending && !busy) { cash.value = (total() / 100).toFixed(2); change(); window.TindahanMotion?.animateValuePulse(document.getElementById('change-amount')); } });
   document.getElementById('clear-basket').addEventListener('click', () => { if (pending || busy) { errorBox.textContent = 'Retry the interrupted checkout before clearing this basket.'; return; } cart.clear(); cash.value = ''; save(); renderBasket(); });
-  function paymentMode() { const credit = document.querySelector('[name="payment_method"]:checked').value === 'Utang'; document.getElementById('cash-fields').hidden = credit; document.getElementById('credit-fields').hidden = !credit; }
-  document.querySelectorAll('[name="payment_method"]').forEach(input => input.addEventListener('change', paymentMode));
+  function paymentMode(animate = false) { const credit = document.querySelector('[name="payment_method"]:checked').value === 'Utang'; document.getElementById('cash-fields').hidden = credit; document.getElementById('credit-fields').hidden = !credit; if (animate) window.TindahanMotion?.animatePosPaymentSwitch(credit ? document.getElementById('credit-fields') : document.getElementById('cash-fields')); }
+  document.querySelectorAll('[name="payment_method"]').forEach(input => input.addEventListener('change', () => paymentMode(true)));
   if (pending) { document.querySelector(`[name="payment_method"][value="${pending.payment_method === 'Utang' ? 'Utang' : 'Cash'}"]`).checked = true; cash.value = pending.cash_tendered; document.getElementById('pos-customer').value = pending.customer_id || ''; document.getElementById('pos-due-date').value = pending.due_date || ''; errorBox.textContent = 'An interrupted checkout is ready to retry. Its token prevents duplicate sales.'; }
   document.getElementById('checkout-form').addEventListener('submit', async event => {
     event.preventDefault(); if (busy || !cart.size) return;
@@ -99,8 +116,8 @@ document.addEventListener('DOMContentLoaded', () => {
       try { sessionStorage.removeItem(storageKey); } catch { /* No saved basket. */ }
       completed = true;
       window.location.assign(data.receipt_url);
-    } catch (error) { errorBox.textContent = error.message || 'Connection interrupted. Retry this checkout.'; }
+    } catch (error) { errorBox.textContent = error.message || 'Connection interrupted. Retry this checkout.'; window.TindahanMotion?.animateShake(errorBox); }
     finally { busy = false; if (!completed) { save(); renderBasket(); } }
   });
-  paymentMode(); renderCatalog(); renderBasket();
+  paymentMode(false); renderCatalog(!catalogAnimatedOnce); catalogAnimatedOnce = true; renderBasket();
 });

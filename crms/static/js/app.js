@@ -1,11 +1,13 @@
 /* Shared controls. Native dialogs provide focus containment and focus restoration. */
-window.openModal = (id, instant = false) => { const dialog = document.getElementById(id); if (dialog && !dialog.open) { dialog.dataset.instant = String(instant); dialog.showModal(); } };
+window.openModal = (id, instant = false) => { const dialog = document.getElementById(id); if (dialog && !dialog.open) { dialog.dataset.instant = String(instant); dialog.showModal(); window.TindahanMotion?.animateDialogOpen(dialog, instant); } };
 window.closeModal = id => document.getElementById(id)?.close();
 window.showToast = message => {
   const host = document.getElementById('global-toast-container');
   if (!host) return;
   const toast = document.createElement('div'); toast.className = 'app-toast'; toast.textContent = message;
-  host.append(toast); setTimeout(() => toast.remove(), 4200);
+  host.append(toast);
+  if (window.TindahanMotion?.animateToast) window.TindahanMotion.animateToast(toast, 3900);
+  else setTimeout(() => toast.remove(), 4200);
 };
 window.copyTextToClipboard = async (text, message = 'Message copied.') => {
   try { await navigator.clipboard.writeText(text); window.showToast(message); }
@@ -19,7 +21,7 @@ window.togglePassword = (id, button) => {
   button?.querySelector('.eye-closed')?.style.setProperty('display', input.type === 'text' ? 'block' : 'none');
 };
 document.addEventListener('DOMContentLoaded', () => {
-  document.querySelectorAll('dialog[data-auto-open]').forEach(dialog => dialog.showModal());
+  document.querySelectorAll('dialog[data-auto-open]').forEach(dialog => { dialog.showModal(); window.TindahanMotion?.animateDialogOpen(dialog, false); });
   document.querySelectorAll('[data-modal]').forEach(button => button.addEventListener('click', event => window.openModal(button.dataset.modal, event.detail === 0)));
   document.querySelectorAll('[data-close-dialog]').forEach(button => button.addEventListener('click', () => button.closest('dialog').close()));
   document.querySelectorAll('dialog').forEach(dialog => dialog.addEventListener('click', event => {
@@ -61,6 +63,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const data = await response.json(); results.replaceChildren();
         if (!data.results.length) results.textContent = 'No customers or products match.';
         data.results.forEach(item => { const link = document.createElement('a'), name = document.createElement('strong'), detail = document.createElement('small'); link.href = item.url; name.textContent = item.label; detail.textContent = item.detail; link.append(name, detail); results.append(link); });
+        window.TindahanMotion?.animateSearchResults(results);
       } catch (error) { if (error.name !== 'AbortError') results.textContent = 'Search is unavailable. Please try again.'; }
     }, 220);
   });
@@ -69,17 +72,20 @@ document.addEventListener('DOMContentLoaded', () => {
     const customer = document.getElementById('entry-customer'), amount = entry.querySelector('[name="amount"]');
     const preview = document.getElementById('entry-preview'), note = document.getElementById('entry-preview-note');
     const format = new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' });
+    let previewInitialized = false, lastPreview = '';
     const updatePreview = () => {
       const selected = customer.selectedOptions[0];
-      if (!selected?.value || !amount.value) { preview.textContent = '—'; note.textContent = 'Choose a customer and enter an amount.'; return; }
+      if (!selected?.value || !amount.value) { preview.textContent = '—'; note.textContent = 'Choose a customer and enter an amount.'; lastPreview = preview.textContent; return; }
       const balance = Math.round(Number(selected.dataset.balance) * 100), entered = Math.round(Number(amount.value) * 100);
-      if (!Number.isFinite(entered) || entered < 0) { preview.textContent = '—'; note.textContent = 'Enter a valid amount.'; return; }
+      if (!Number.isFinite(entered) || entered < 0) { preview.textContent = '—'; note.textContent = 'Enter a valid amount.'; lastPreview = preview.textContent; return; }
       const payment = entry.dataset.kind === 'bayad';
       if (payment) amount.max = (balance / 100).toFixed(2);
       const remaining = payment ? balance - entered : balance + entered;
       preview.textContent = format.format(remaining / 100);
       note.textContent = payment && remaining < 0 ? 'The payment exceeds this customer’s balance.' : `${format.format(balance / 100)} ${payment ? '−' : '+'} ${format.format(entered / 100)} · preview only`;
+      if (previewInitialized && preview.textContent !== lastPreview) window.TindahanMotion?.animateValuePulse(preview);
+      lastPreview = preview.textContent;
     };
-    customer.addEventListener('change', updatePreview); amount.addEventListener('input', updatePreview); updatePreview();
+    customer.addEventListener('change', updatePreview); amount.addEventListener('input', updatePreview); updatePreview(); previewInitialized = true;
   }
 });
