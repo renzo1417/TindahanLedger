@@ -26,11 +26,11 @@ class LandingPageSmokeTests(TestCase):
         with self.assertNumQueries(0):
             response = self.client.get('/')
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'New accounts start empty.')
-        self.assertContains(response, 'Halimbawang tala · Sample lamang')
+        self.assertContains(response, 'Walang laman sa simula ang bagong account.')
+        self.assertContains(response, 'Halimbawang tala lamang')
         for sample in (
             '+₱150.00', '3 araw na lang', 'Aling Rosa', 'Bigas', '₱250.00',
-            '-₱150.00', '₱200.00', 'Pancit Canton', 'Sardinas', '3 entries',
+            '-₱150.00', '₱200.00', 'Pancit Canton', 'Sardinas', '3 tala',
             '₱470.00', '₱270.00',
         ):
             self.assertContains(response, sample)

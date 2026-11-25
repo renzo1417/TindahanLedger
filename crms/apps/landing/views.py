@@ -98,7 +98,7 @@ def _public_landing_preview(order):
             display_label='Expired na (4 sachets)',
         ),
         'preview_activity': [
-            {'label': 'Cash sale', 'amount': Decimal('120.00'), 'date': _sample_time(7, 15), 'kind': 'Walk-in suki', 'is_payment': False},
+            {'label': 'Benta sa cash', 'amount': Decimal('120.00'), 'date': _sample_time(7, 15), 'kind': 'Suki sa tindahan', 'is_payment': False},
             {'label': 'Aling Rosa', 'amount': Decimal('350.00'), 'date': _sample_time(8, 30), 'kind': 'Pautang', 'is_payment': False},
             {'label': 'Bayad ni Rosa', 'amount': Decimal('150.00'), 'date': _sample_time(16, 45), 'kind': 'Bayad sa utang', 'is_payment': True},
         ],
